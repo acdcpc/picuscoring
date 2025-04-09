@@ -1,4 +1,6 @@
 // src/App.jsx
+// Change a line, e.g., a heading in your app
+<h1>PICU App Score - PRakash  Merge Test</h1>
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
