@@ -1,20 +1,16 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// src/App.jsx
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
-import { useState, useEffect } from 'react';
-import HomePage from './pages/HomePage';
+import Layout from './components/layout/Layout';
 import PatientListPage from './pages/PatientListPage';
-import PatientDetailsPage from './pages/PatientDetailsPage';
+import PatientDetailPage from './pages/PatientDetailPage';
 import ScoreSelectionPage from './pages/ScoreSelectionPage';
 import ScoreInputPage from './pages/ScoreInputPage';
-import ScoreResultsPage from './pages/ScoreResultsPage';
-import TrendAnalysisPage from './pages/TrendAnalysisPage';
+import ScoreResultPage from './pages/ScoreResultPage';
 import SettingsPage from './pages/SettingsPage';
-import HelpPage from './pages/HelpPage';
 import LoginPage from './pages/LoginPage';
-import NotFoundPage from './pages/NotFoundPage';
-import Layout from './components/Layout';
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -33,29 +29,41 @@ const App = () => {
   }
 
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route
-          path="/login"
-          element={user ? <Navigate to="/" /> : <LoginPage />}
-        />
-        <Route
-          path="/"
-          element={user ? <Layout /> : <Navigate to="/login" />}
-        >
-          <Route index element={<HomePage />} />
-          <Route path="patients" element={<PatientListPage />} />
-          <Route path="patients/:patientId" element={<PatientDetailsPage />} />
-          <Route path="patients/:patientId/new-assessment" element={<ScoreSelectionPage />} />
-          <Route path="patients/:patientId/score/:scoreType" element={<ScoreInputPage />} />
-          <Route path="patients/:patientId/results/:assessmentId" element={<ScoreResultsPage />} />
-          <Route path="patients/:patientId/trends" element={<TrendAnalysisPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="help" element={<HelpPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+        <Route path="/login" element={user ? <Navigate to="/patients" /> : <LoginPage />} />
+        <Route element={<Layout />}>
+          <Route
+            path="/"
+            element={user ? <Navigate to="/patients" /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/patients"
+            element={user ? <PatientListPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/patients/:patientId"
+            element={user ? <PatientDetailPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/patients/:patientId/new-assessment"
+            element={user ? <ScoreSelectionPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/patients/:patientId/score/:scoreType"
+            element={user ? <ScoreInputPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/patients/:patientId/results/:assessmentId"
+            element={user ? <ScoreResultPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/settings"
+            element={user ? <SettingsPage /> : <Navigate to="/login" />}
+          />
         </Route>
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 };
 
