@@ -1,15 +1,13 @@
-import React from 'react';
-import calculatePRISM3Score, { AGE_CATEGORIES } from '../../utils/prism3Calculator';
+import React, { useEffect } from 'react';
+import calculatePRISM3Score from '../../utils/prism3Calculator';
 import calculateSOFAScore from '../../utils/sofaCalculator';
 import calculateCOMFORTBScore from '../../utils/comfortBCalculator';
-import calculatePIM3Score, { HIGH_RISK_DIAGNOSES, LOW_RISK_DIAGNOSES } from '../../utils/pim3Calculator';
+import calculatePIM3Score from '../../utils/pim3Calculator';
 import calculatePELOD2Score from '../../utils/pelod2Calculator';
 
-// This component will integrate all scoring calculators
-const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
-  // Function to calculate the appropriate score based on scoreType
+const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedScore }) => {
   const calculateScore = () => {
-    switch(scoreType) {
+    switch (scoreType) {
       case 'prism3':
         return calculatePRISM3Score(inputValues, patientData.ageCategory);
       case 'sofa':
@@ -25,14 +23,18 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
     }
   };
 
-  // Calculate the score
   const scoreResult = calculateScore();
 
-  // Render appropriate result display based on score type
+  useEffect(() => {
+    if (scoreResult) {
+      setCalculatedScore(scoreResult);
+    }
+  }, [scoreResult, setCalculatedScore]);
+
   const renderScoreResult = () => {
     if (!scoreResult) return <p>No score calculated</p>;
 
-    switch(scoreType) {
+    switch (scoreType) {
       case 'prism3':
         return (
           <div>
@@ -48,7 +50,6 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
             </div>
           </div>
         );
-      
       case 'sofa':
         return (
           <div>
@@ -71,7 +72,6 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
             </div>
           </div>
         );
-      
       case 'comfortb':
         return (
           <div>
@@ -94,7 +94,6 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
             </div>
           </div>
         );
-      
       case 'pim3':
         return (
           <div>
@@ -104,7 +103,6 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
             <p className="text-sm text-gray-600">Logit: {scoreResult.logit.toFixed(4)}</p>
           </div>
         );
-      
       case 'pelod2':
         return (
           <div>
@@ -126,7 +124,6 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
             </div>
           </div>
         );
-      
       default:
         return <p>Unknown score type</p>;
     }

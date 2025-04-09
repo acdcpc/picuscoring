@@ -1,5 +1,8 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
+import { useState, useEffect } from 'react';
 import HomePage from './pages/HomePage';
 import PatientListPage from './pages/PatientListPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
@@ -13,12 +16,33 @@ import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import Layout from './components/Layout';
 
-function App() {
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<Layout />}>
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/" /> : <LoginPage />}
+        />
+        <Route
+          path="/"
+          element={user ? <Layout /> : <Navigate to="/login" />}
+        >
           <Route index element={<HomePage />} />
           <Route path="patients" element={<PatientListPage />} />
           <Route path="patients/:patientId" element={<PatientDetailsPage />} />
@@ -33,6 +57,6 @@ function App() {
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
