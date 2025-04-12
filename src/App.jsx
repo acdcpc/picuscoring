@@ -5,10 +5,10 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import Layout from './components/layout/Layout';
 import PatientListPage from './pages/PatientListPage';
-import PatientDetailsPage from './pages/PatientDetailsPage';  // Updated import
+import PatientDetailsPage from './pages/PatientDetailsPage';
 import ScoreSelectionPage from './pages/ScoreSelectionPage';
 import ScoreInputPage from './pages/ScoreInputPage';
-import ScoreResultPage from './pages/ScoreResultPage';
+import ScoreResultsPage from './pages/ScoreResultsPage';  // Updated import
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
 
@@ -47,7 +47,7 @@ const App = () => {
             />
             <Route
               path="/patients/:patientId"
-              element={user ? <PatientDetailsPage /> : <Navigate to="/login" />}  // Updated component
+              element={user ? <PatientDetailsPage /> : <Navigate to="/login" />}
             />
             <Route
               path="/patients/:patientId/new-assessment"
@@ -59,7 +59,7 @@ const App = () => {
             />
             <Route
               path="/patients/:patientId/results/:assessmentId"
-              element={user ? <ScoreResultPage /> : <Navigate to="/login" />}
+              element={user ? <ScoreResultsPage /> : <Navigate to="/login" />}  // Updated component
             />
             <Route
               path="/settings"
