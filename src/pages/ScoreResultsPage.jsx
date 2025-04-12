@@ -1,3 +1,4 @@
+// src/pages/ScoreResultsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { db } from '../firebase';
@@ -14,13 +15,36 @@ const ScoreResultsPage = () => {
   const [calculatedScore, setCalculatedScore] = useState(null);
 
   useEffect(() => {
-    if (location.state && location.state.scoreType && location.state.formValues) {
-      setScoreData({
-        scoreType: location.state.scoreType,
-        formValues: location.state.formValues,
-      });
-    }
-  }, [location]);
+    const fetchAssessment = async () => {
+      if (location.state && location.state.scoreType && location.state.formValues) {
+        setScoreData({
+          scoreType: location.state.scoreType,
+          formValues: location.state.formValues,
+        });
+      } else if (assessmentId !== "new") {
+        // Fetch assessment data from Firestore if location.state is unavailable
+        try {
+          const assessmentRef = doc(db, "assessments", assessmentId);
+          const assessmentSnap = await getDoc(assessmentRef);
+          if (assessmentSnap.exists()) {
+            const data = assessmentSnap.data();
+            setScoreData({
+              scoreType: data.scoreType,
+              formValues: data.formValues,
+            });
+            setCalculatedScore(data.calculatedScore);
+          } else {
+            setScoreData(null);
+          }
+        } catch (error) {
+          console.error("Error fetching assessment:", error);
+          setScoreData(null);
+        }
+      }
+    };
+
+    fetchAssessment();
+  }, [location, assessmentId]);
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -64,6 +88,8 @@ const ScoreResultsPage = () => {
       const newAssessmentId = assessmentId === "new" ? uuidv4() : assessmentId;
       await setDoc(doc(db, "assessments", newAssessmentId), assessmentData);
       alert("Assessment saved successfully!");
+      // Optionally redirect to the assessment results page with the new ID
+      // navigate(`/patients/${patientId}/results/${newAssessmentId}`);
     } catch (error) {
       console.error("Error saving assessment:", error);
       alert("Failed to save assessment.");
@@ -123,7 +149,7 @@ const ScoreResultsPage = () => {
             scoreType={scoreData.scoreType}
             patientData={patient}
             inputValues={scoreData.formValues}
-            setCalculatedScore={setCalculatedScore} // Pass setter to store score
+            setCalculatedScore={setCalculatedScore}
           />
         ) : (
           <div className="text-center py-8">
