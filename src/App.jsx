@@ -30,39 +30,44 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={user ? <Navigate to="/patients" /> : <LoginPage />} />
-        <Route element={<Layout />}>
-          <Route
-            path="/"
-            element={user ? <Navigate to="/patients" /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/patients"
-            element={user ? <PatientListPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/patients/:patientId"
-            element={user ? <PatientDetailPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/patients/:patientId/new-assessment"
-            element={user ? <ScoreSelectionPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/patients/:patientId/score/:scoreType"
-            element={user ? <ScoreInputPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/patients/:patientId/results/:assessmentId"
-            element={user ? <ScoreResultPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/settings"
-            element={user ? <SettingsPage /> : <Navigate to="/login" />}
-          />
-        </Route>
-      </Routes>
+      <div>
+        <h1 style={{ textAlign: 'center', color: '#333' }}>
+          PICU App Score - Direct Push Deployment Test (April 2025)
+        </h1>
+        <Routes>
+          <Route path="/login" element={user ? <Navigate to="/patients" /> : <LoginPage />} />
+          <Route element={<Layout />}>
+            <Route
+              path="/"
+              element={user ? <Navigate to="/patients" /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/patients"
+              element={user ? <PatientListPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/patients/:patientId"
+              element={user ? <PatientDetailPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/patients/:patientId/new-assessment"
+              element={user ? <ScoreSelectionPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/patients/:patientId/score/:scoreType"
+              element={user ? <ScoreInputPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/patients/:patientId/results/:assessmentId"
+              element={user ? <ScoreResultPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/settings"
+              element={user ? <SettingsPage /> : <Navigate to="/login" />}
+            />
+          </Route>
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 };
