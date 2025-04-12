@@ -5,7 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import Layout from './components/layout/Layout';
 import PatientListPage from './pages/PatientListPage';
-import PatientDetailPage from './pages/PatientDetailPage';
+import PatientDetailsPage from './pages/PatientDetailsPage';  // Updated import
 import ScoreSelectionPage from './pages/ScoreSelectionPage';
 import ScoreInputPage from './pages/ScoreInputPage';
 import ScoreResultPage from './pages/ScoreResultPage';
@@ -47,7 +47,7 @@ const App = () => {
             />
             <Route
               path="/patients/:patientId"
-              element={user ? <PatientDetailPage /> : <Navigate to="/login" />}
+              element={user ? <PatientDetailsPage /> : <Navigate to="/login" />}  // Updated component
             />
             <Route
               path="/patients/:patientId/new-assessment"
