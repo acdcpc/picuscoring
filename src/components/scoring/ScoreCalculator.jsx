@@ -4,6 +4,8 @@ import calculateSOFAScore from '../../utils/sofaCalculator';
 import calculateCOMFORTBScore from '../../utils/comfortBCalculator';
 import calculatePIM3Score from '../../utils/pim3Calculator';
 import calculatePELOD2Score from '../../utils/pelod2Calculator';
+import calculateSOSPDScore from '../../utils/sospdCalculator';
+import calculatePhoenixScore from '../../utils/phoenixCalculator';
 
 const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedScore }) => {
   const calculateScore = () => {
@@ -18,6 +20,10 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
         return calculatePIM3Score(inputValues);
       case 'pelod2':
         return calculatePELOD2Score(inputValues, patientData.ageInMonths);
+      case 'sospd':
+        return calculateSOSPDScore(inputValues);
+      case 'phoenix':
+        return calculatePhoenixScore(inputValues);
       default:
         return null;
     }
@@ -120,6 +126,50 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
               </div>
               <div>
                 <p>Hematological: {scoreResult.hematologicalScore}</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'sospd':
+        return (
+          <div>
+            <h3 className="text-xl font-semibold mb-2">SOS-PD Score: {scoreResult.totalScore}</h3>
+            <p className="mb-2">Delirium Status: {scoreResult.deliriumPresent ? 'Present' : 'Absent'}</p>
+            <p className="mb-2">Delirium Type: {scoreResult.deliriumType}</p>
+            <p className="mb-4">{scoreResult.clinicalInterpretation}</p>
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div>
+                <p>Anxiety: {scoreResult.anxietyScore}</p>
+                <p>Agitation: {scoreResult.agitationScore}</p>
+              </div>
+              <div>
+                <p>Hallucinations: {scoreResult.hallucinationsScore}</p>
+                <p>Inconsolable Crying: {scoreResult.inconsolableCryingScore}</p>
+              </div>
+              <div>
+                <p>Altered Consciousness: {scoreResult.alteredConsciousnessScore}</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'phoenix':
+        return (
+          <div>
+            <h3 className="text-xl font-semibold mb-2">PHOENIX Sepsis Score: {scoreResult.totalScore}</h3>
+            <p className="mb-2">Sepsis Status: {scoreResult.sepsisStatus}</p>
+            <p className="mb-2">Mortality Risk: {scoreResult.mortalityRisk}%</p>
+            <p className="mb-4">{scoreResult.clinicalInterpretation}</p>
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div>
+                <p>Respiratory: {scoreResult.respiratoryScore}</p>
+                <p>Cardiovascular: {scoreResult.cardiovascularScore}</p>
+              </div>
+              <div>
+                <p>Renal: {scoreResult.renalScore}</p>
+                <p>Neurologic: {scoreResult.neurologicScore}</p>
+              </div>
+              <div>
+                <p>Systemic Infection: {scoreResult.systemicInfectionScore}</p>
               </div>
             </div>
           </div>
