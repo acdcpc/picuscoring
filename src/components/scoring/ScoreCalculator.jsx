@@ -8,8 +8,12 @@ import calculateSOSPDScore from '../../utils/sospdCalculator';
 import calculatePhoenixScore from '../../utils/phoenixCalculator';
 
 const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedScore }) => {
+  console.log('ScoreCalculator - scoreType:', scoreType);
+
   const calculateScore = () => {
-    switch (scoreType) {
+    const normalizedScoreType = scoreType?.toLowerCase();
+
+    switch (normalizedScoreType) {
       case 'prism3':
         return calculatePRISM3Score(inputValues, patientData.ageCategory);
       case 'sofa':
@@ -25,6 +29,7 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
       case 'phoenix':
         return calculatePhoenixScore(inputValues);
       default:
+        console.error('Unrecognized scoreType:', scoreType);
         return null;
     }
   };
@@ -34,13 +39,17 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
   useEffect(() => {
     if (scoreResult) {
       setCalculatedScore(scoreResult);
+    } else {
+      console.warn('ScoreCalculator - No score result calculated for scoreType:', scoreType);
     }
-  }, [scoreResult, setCalculatedScore]);
+  }, [scoreResult, setCalculatedScore, scoreType]);
 
   const renderScoreResult = () => {
     if (!scoreResult) return <p>No score calculated</p>;
 
-    switch (scoreType) {
+    const normalizedScoreType = scoreType?.toLowerCase();
+
+    switch (normalizedScoreType) {
       case 'prism3':
         return (
           <div>
@@ -49,9 +58,25 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h4 className="font-medium">Neurologic Score: {scoreResult.neurologicScore}</h4>
+                <p>Glasgow Coma Score: {scoreResult.glasgowComaScore || 'N/A'}</p>
+                <p>Pupils Fixed: {scoreResult.pupilsFixedScore || 'N/A'}</p>
               </div>
               <div>
                 <h4 className="font-medium">Non-Neurologic Score: {scoreResult.nonNeurologicScore}</h4>
+                <p>Heart Rate: {scoreResult.heartRateScore || 'N/A'}</p>
+                <p>Systolic BP: {scoreResult.bloodPressureScore || 'N/A'}</p>
+                <p>Temperature: {scoreResult.temperatureScore || 'N/A'}</p>
+                <p>Respiratory Rate: {scoreResult.respiratoryRateScore || 'N/A'}</p>
+                <p>PaO2: {scoreResult.pao2Score || 'N/A'}</p>
+                <p>PaCO2: {scoreResult.paco2Score || 'N/A'}</p>
+                <p>pH: {scoreResult.phScore || 'N/A'}</p>
+                <p>Glucose: {scoreResult.glucoseScore || 'N/A'}</p>
+                <p>Potassium: {scoreResult.potassiumScore || 'N/A'}</p>
+                <p>Creatinine: {scoreResult.creatinineScore || 'N/A'}</p>
+                <p>Urea: {scoreResult.ureaScore || 'N/A'}</p>
+                <p>White Blood Cells: {scoreResult.whiteBloodCellsScore || 'N/A'}</p>
+                <p>Platelets: {scoreResult.plateletsScore || 'N/A'}</p>
+                <p>Prothrombin Time: {scoreResult.prothrombinTimeScore || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -141,13 +166,25 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
               <div>
                 <p>Anxiety: {scoreResult.anxietyScore}</p>
                 <p>Agitation: {scoreResult.agitationScore}</p>
-              </div>
-              <div>
                 <p>Hallucinations: {scoreResult.hallucinationsScore}</p>
                 <p>Inconsolable Crying: {scoreResult.inconsolableCryingScore}</p>
+                <p>Altered Consciousness: {scoreResult.alteredConsciousnessScore}</p>
+                <p>Tremors: {scoreResult.tremorsScore || 0}</p>
               </div>
               <div>
-                <p>Altered Consciousness: {scoreResult.alteredConsciousnessScore}</p>
+                <p>Motor Restlessness: {scoreResult.motorRestlessnessScore || 0}</p>
+                <p>Sleep Disturbance: {scoreResult.sleepDisturbanceScore || 0}</p>
+                <p>Irritability: {scoreResult.irritabilityScore || 0}</p>
+                <p>Sweating: {scoreResult.sweatingScore || 0}</p>
+                <p>Grimacing: {scoreResult.grimacingScore || 0}</p>
+                <p>Increased Muscle Tension: {scoreResult.increasedMuscleTensionScore || 0}</p>
+              </div>
+              <div>
+                <p>Startle Response: {scoreResult.startleResponseScore || 0}</p>
+                <p>Poor Eye Contact: {scoreResult.poorEyeContactScore || 0}</p>
+                <p>Disorientation: {scoreResult.disorientationScore || 0}</p>
+                <p>Incoherent Speech: {scoreResult.incoherentSpeechScore || 0}</p>
+                <p>Withdrawal: {scoreResult.withdrawalScore || 0}</p>
               </div>
             </div>
           </div>
@@ -155,27 +192,47 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
       case 'phoenix':
         return (
           <div>
-            <h3 className="text-xl font-semibold mb-2">PHOENIX Sepsis Score: {scoreResult.totalScore}</h3>
+            <h3 className="text-xl font-semibold mb-2">Phoenix Sepsis Score: {scoreResult.totalScore}</h3>
             <p className="mb-2">Sepsis Status: {scoreResult.sepsisStatus}</p>
             <p className="mb-2">Mortality Risk: {scoreResult.mortalityRisk}%</p>
             <p className="mb-4">{scoreResult.clinicalInterpretation}</p>
             <div className="grid grid-cols-3 gap-2 text-sm">
               <div>
-                <p>Respiratory: {scoreResult.respiratoryScore}</p>
-                <p>Cardiovascular: {scoreResult.cardiovascularScore}</p>
-              </div>
-              <div>
-                <p>Renal: {scoreResult.renalScore}</p>
-                <p>Neurologic: {scoreResult.neurologicScore}</p>
-              </div>
-              <div>
+                <h4 className="font-medium">General</h4>
+                <p>Age Category: {scoreResult.ageCategory}</p>
                 <p>Systemic Infection: {scoreResult.systemicInfectionScore}</p>
+              </div>
+              <div>
+                <h4 className="font-medium">Respiratory (Score: {scoreResult.respiratoryScore})</h4>
+                <p>PaO2: {scoreResult.pao2 || 'N/A'} mmHg</p>
+                <p>SpO2: {scoreResult.spo2 || 'N/A'} %</p>
+                <p>FiO2: {scoreResult.fio2 || 'N/A'} %</p>
+                <p>Oxygenation Ratio: {scoreResult.oxygenationRatio.toFixed(1)}</p>
+                <p>Respiratory Support: {scoreResult.respiratorySupport}</p>
+              </div>
+              <div>
+                <h4 className="font-medium">Cardiovascular (Score: {scoreResult.cardiovascularScore})</h4>
+                <p>Vasoactive Medications: {scoreResult.vasoactiveMedications}</p>
+                <p>Lactate: {scoreResult.lactateLevel} mmol/L</p>
+                <p>MAP: {scoreResult.meanArterialPressure} mmHg</p>
+              </div>
+              <div>
+                <h4 className="font-medium">Coagulation (Score: {scoreResult.coagulationScore})</h4>
+                <p>Platelets: {scoreResult.plateletCount} x10^3/µL</p>
+                <p>INR: {scoreResult.inr}</p>
+                <p>D-dimer: {scoreResult.dDimer} mg/L FEU</p>
+                <p>Fibrinogen: {scoreResult.fibrinogen} mg/dL</p>
+              </div>
+              <div>
+                <h4 className="font-medium">Neurological (Score: {scoreResult.neurologicScore})</h4>
+                <p>Glasgow Coma Score: {scoreResult.glasgowComaScore}</p>
+                <p>Pupils Fixed Bilaterally: {scoreResult.pupilsFixed}</p>
               </div>
             </div>
           </div>
         );
       default:
-        return <p>Unknown score type</p>;
+        return <p>Unknown score type: {scoreType}</p>;
     }
   };
 
