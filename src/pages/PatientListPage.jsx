@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const PatientListPage = () => {
   const [patients, setPatients] = useState([]);
@@ -17,8 +18,9 @@ const PatientListPage = () => {
   });
   const [formError, setFormError] = useState(null);
 
-  // Fetch patients from Firestore
+  // Fetch patients from Firestore after auth
   useEffect(() => {
+    let unsubscribe;
     const fetchPatients = async () => {
       try {
         const patientsCollection = collection(db, 'patients');
@@ -26,7 +28,8 @@ const PatientListPage = () => {
         const patientList = patientSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          lastScore: { type: 'N/A', value: 'N/A', time: 'N/A' }
+          lastScore: { type: 'N/A', value: 'N/A', time: 'N/A' },
+          createdAt: doc.data().createdAt || new Date(), // For sorting by Recent
         }));
         setPatients(patientList);
       } catch (error) {
@@ -36,20 +39,48 @@ const PatientListPage = () => {
         setLoading(false);
       }
     };
-    fetchPatients();
+
+    unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchPatients();
+      } else {
+        setError("You must be signed in to view patients.");
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe && unsubscribe();
   }, []);
 
   // Handle sorting
   const handleSortChange = (e) => {
-    setSortBy(e.target.value);
-    // Add sorting logic here if needed
+    const newSortBy = e.target.value;
+    setSortBy(newSortBy);
+    setPatients((prevPatients) =>
+      [...prevPatients].sort((a, b) => {
+        if (newSortBy === 'Name') {
+          return a.name.localeCompare(b.name);
+        } else if (newSortBy === 'Age') {
+          return a.ageInMonths - b.ageInMonths;
+        } else if (newSortBy === 'Recent') {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        return 0; // Score sorting not implemented
+      })
+    );
   };
 
   // Handle filtering
   const handleFilterChange = (e) => {
-    setFilter(e.target.value);
-    // Add filtering logic here if needed
+    const newFilter = e.target.value;
+    setFilter(newFilter);
   };
+
+  // Apply filter to displayed patients
+  const filteredPatients = patients.filter((patient) => {
+    if (filter === 'All') return true;
+    return patient.ageCategory === filter.toLowerCase();
+  });
 
   // Open the Add Patient modal
   const handleAddPatient = () => {
@@ -90,7 +121,8 @@ const PatientListPage = () => {
         name: newPatient.name.trim(),
         ageInMonths: parseInt(newPatient.ageInMonths),
         ageCategory: newPatient.ageCategory,
-        // Add MRN or other fields if needed
+        createdAt: new Date().toISOString(),
+        userId: auth.currentUser?.uid, // Tie to authenticated user
       };
       const docRef = await addDoc(collection(db, 'patients'), patientData);
       console.log("New patient added with ID:", docRef.id);
@@ -101,7 +133,8 @@ const PatientListPage = () => {
       const patientList = patientSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        lastScore: { type: 'N/A', value: 'N/A', time: 'N/A' }
+        lastScore: { type: 'N/A', value: 'N/A', time: 'N/A' },
+        createdAt: doc.data().createdAt || new Date(),
       }));
       setPatients(patientList);
 
@@ -177,21 +210,22 @@ const PatientListPage = () => {
               className="border rounded-md px-2 py-1 text-sm"
             >
               <option>All</option>
-              <option>High Risk</option>
-              <option>Medium Risk</option>
-              <option>Low Risk</option>
+              <option>Neonate</option>
+              <option>Infant</option>
+              <option>Child</option>
+              <option>Adolescent</option>
             </select>
           </div>
         </div>
       </div>
 
       <div className="space-y-4">
-        {patients.length === 0 ? (
+        {filteredPatients.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-4 text-center">
             <p className="text-gray-600">No patients found.</p>
           </div>
         ) : (
-          patients.map((patient) => (
+          filteredPatients.map((patient) => (
             <Link
               key={patient.id}
               to={`/patients/${patient.id}`}
