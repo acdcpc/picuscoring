@@ -1,40 +1,82 @@
 import React, { useEffect } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { calculatePrism3 } from '../../utils/prism3Calculator.js';
-import { calculatePelod2 } from '../../utils/pelod2Calculator.js';
-import { calculatePsofa } from '../../utils/pSofaCalculator.js';
-import { calculatePim3 } from '../../utils/pim3Calculator.js';
-import { calculateComfortB } from '../../utils/comfortBCalculator.js';
-import { calculateSospd } from '../../utils/sospdCalculator.js';
-import { calculatePhoenix } from '../../utils/phoenixCalculator.js';
+import { db } from '../../firebase.js';
+import { calculatePRISM3Score } from '../../utils/prism3Calculator.js';
+import { calculatePELOD2Score } from '../../utils/pelod2Calculator.js';
+import { calculatePSOFAScore } from '../../utils/pSofaCalculator.js';
+import { calculatePIM3Score } from '../../utils/pim3Calculator.js';
+import { calculateCOMFORTBScore } from '../../utils/comfortBCalculator.js';
+import { calculateSOSPDScore } from '../../utils/sospdCalculator.js';
+import { calculatePhoenixScore } from '../../utils/phoenixCalculator.js';
+
+// Map app age categories to PRISM-3 age categories
+const mapAgeCategory = (appAgeCategory) => {
+  switch (appAgeCategory) {
+    case '<1 month':
+      return 'neonate';
+    case '1 to 11 months':
+    case '1 to <2 years':
+      return 'infant';
+    case '2 to <5 years':
+    case '5 to <12 years':
+      return 'child';
+    case '12 to 17 years':
+      return 'adolescent';
+    default:
+      return 'child'; // Default to child if unknown
+  }
+};
+
+// Derive age in months from age category
+const getAgeInMonths = (ageCategory) => {
+  switch (ageCategory) {
+    case '<1 month':
+      return 0.5; // Approximate as 2 weeks
+    case '1 to 11 months':
+      return 6; // Approximate as 6 months
+    case '1 to <2 years':
+      return 18; // Approximate as 1.5 years
+    case '2 to <5 years':
+      return 42; // Approximate as 3.5 years
+    case '5 to <12 years':
+      return 102; // Approximate as 8.5 years
+    case '12 to 17 years':
+      return 174; // Approximate as 14.5 years
+    default:
+      return 102; // Default to 8.5 years
+  }
+};
 
 const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedScore }) => {
   useEffect(() => {
     const calculateScore = async () => {
       let result = null;
       try {
+        // Map the age category for scores that need it
+        const mappedAgeCategory = mapAgeCategory(patientData.ageCategory);
+        const ageInMonths = patientData.ageInMonths || getAgeInMonths(patientData.ageCategory);
+
         switch (scoreType) {
           case 'prism3':
-            result = calculatePrism3(inputValues);
+            result = calculatePRISM3Score(inputValues, mappedAgeCategory);
             break;
           case 'pelod2':
-            result = calculatePelod2(inputValues);
+            result = calculatePELOD2Score(inputValues, ageInMonths);
             break;
           case 'psofa':
-            result = calculatePsofa(inputValues, patientData.ageCategory);
+            result = calculatePSOFAScore({ ...inputValues, ageCategory: patientData.ageCategory });
             break;
           case 'pim3':
-            result = calculatePim3(inputValues);
+            result = calculatePIM3Score(inputValues);
             break;
           case 'comfortb':
-            result = calculateComfortB(inputValues);
+            result = calculateCOMFORTBScore(inputValues);
             break;
           case 'sospd':
-            result = calculateSospd(inputValues);
+            result = calculateSOSPDScore(inputValues);
             break;
           case 'phoenix':
-            result = calculatePhoenix(inputValues, patientData.ageCategory);
+            result = calculatePhoenixScore({ ...inputValues, ageCategory: patientData.ageCategory });
             break;
           default:
             throw new Error('Unknown score type');

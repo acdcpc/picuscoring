@@ -1,4 +1,21 @@
-const calculateSOSPDScore = (inputValues) => {
+/**
+ * SOS-PD Score Calculator
+ * 
+ * This module implements the SOS-PD score for assessing delirium in pediatric patients.
+ */
+
+/**
+ * Calculate SOS-PD score based on symptoms
+ * 
+ * @param {Object} inputValues - Symptom parameters
+ * @returns {Object} - Delirium assessment
+ */
+export const calculateSOSPDScore = (inputValues) => {
+  // Validate inputs
+  if (!inputValues || typeof inputValues !== 'object') {
+    throw new Error('Invalid input: inputValues must be an object');
+  }
+
   // Extract values (0 or 1), default to 0 if not provided
   const anxiety = parseInt(inputValues.anxiety) || 0;
   const agitation = parseInt(inputValues.agitation) || 0;

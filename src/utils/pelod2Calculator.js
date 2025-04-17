@@ -16,10 +16,16 @@
  * @returns {Object} - Calculated scores and assessment
  */
 export const calculatePELOD2Score = (params, ageInMonths) => {
+  // Validate inputs
+  if (!params || typeof params !== 'object') {
+    throw new Error('Invalid input: params must be an object');
+  }
+  const validatedAgeInMonths = typeof ageInMonths === 'number' && ageInMonths >= 0 ? ageInMonths : 102; // Default to 8.5 years if missing
+
   // Calculate scores for each organ system
   const neurologicalScore = calculateNeurologicalScore(params.gcs, params.pupillaryReaction);
-  const cardiovascularScore = calculateCardiovascularScore(params.lactatemia, params.map, ageInMonths);
-  const renalScore = calculateRenalScore(params.creatinine, ageInMonths);
+  const cardiovascularScore = calculateCardiovascularScore(params.lactatemia, params.map, validatedAgeInMonths);
+  const renalScore = calculateRenalScore(params.creatinine, validatedAgeInMonths);
   const respiratoryScore = calculateRespiratoryScore(params.pao2fio2, params.paco2, params.isVentilated);
   const hematologicalScore = calculateHematologicalScore(params.wbc, params.platelets);
   

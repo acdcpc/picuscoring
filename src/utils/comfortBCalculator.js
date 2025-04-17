@@ -16,6 +16,11 @@
  * @returns {Object} - Calculated score and assessment
  */
 export const calculateCOMFORTBScore = (params) => {
+  // Validate inputs
+  if (!params || typeof params !== 'object') {
+    throw new Error('Invalid input: params must be an object');
+  }
+
   // Calculate scores for each component
   const alertnessScore = calculateAlertnessScore(params.alertness);
   const calmnessScore = calculateCalmnessScore(params.calmness);
@@ -94,7 +99,7 @@ const calculateMuscleToneScore = (muscleTone) => {
   if (muscleTone === undefined || muscleTone === null) return 0;
   
   // Direct score from 1-5
-  return Math.min(Math.max(parseInt(muscleTone), 1), 5);
+  return Math.min(Math.max(parseInt(movement), 1), 5);
 };
 
 /**

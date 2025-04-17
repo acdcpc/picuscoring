@@ -1,4 +1,22 @@
-const calculatePSOFAScore = (inputValues) => {
+/**
+ * pSOFA Score Calculator
+ * 
+ * This module implements the Pediatric Sequential Organ Failure Assessment (pSOFA) score
+ * for assessing organ dysfunction in pediatric intensive care units.
+ */
+
+/**
+ * Calculate pSOFA score based on physiological variables
+ * 
+ * @param {Object} inputValues - Physiological parameters
+ * @returns {Object} - Calculated scores and assessment
+ */
+export const calculatePSOFAScore = (inputValues) => {
+  // Validate inputs
+  if (!inputValues || typeof inputValues !== 'object') {
+    throw new Error('Invalid input: inputValues must be an object');
+  }
+
   let totalScore = 0;
   const scoreDetails = {};
 
@@ -22,7 +40,7 @@ const calculatePSOFAScore = (inputValues) => {
     }
   };
 
-  const thresholds = getAgeAdjustedThresholds(inputValues.ageCategory);
+  const thresholds = getAgeAdjustedThresholds(inputValues.ageCategory || '5 to <12 years');
 
   // Respiratory Score (0-4)
   let respiratoryScore = 0;

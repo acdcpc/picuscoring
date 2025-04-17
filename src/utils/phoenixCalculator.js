@@ -1,4 +1,21 @@
-const calculatePhoenixScore = (inputValues) => {
+/**
+ * Phoenix Sepsis Score Calculator
+ * 
+ * This module implements the Phoenix Sepsis score for assessing sepsis in pediatric patients.
+ */
+
+/**
+ * Calculate Phoenix Sepsis score based on physiological variables
+ * 
+ * @param {Object} inputValues - Physiological parameters
+ * @returns {Object} - Calculated scores and assessment
+ */
+export const calculatePhoenixScore = (inputValues) => {
+  // Validate inputs
+  if (!inputValues || typeof inputValues !== 'object') {
+    throw new Error('Invalid input: inputValues must be an object');
+  }
+
   let totalScore = 0;
   const scoreDetails = {};
 
