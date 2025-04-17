@@ -1,75 +1,49 @@
-// src/App.jsx
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
-import Layout from './components/layout/Layout';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import PatientListPage from './pages/PatientListPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
-import ScoreSelectionPage from './pages/ScoreSelectionPage';
-import ScoreInputPage from './pages/ScoreInputPage';
-import ScoreResultsPage from './pages/ScoreResultsPage';  // Updated import
-import SettingsPage from './pages/SettingsPage';
-import LoginPage from './pages/LoginPage';
+import NewAssessment from './components/NewAssessment';
 
-const App = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
+function App() {
   return (
-    <BrowserRouter>
-      <div>
-        <h1 style={{ textAlign: 'center', color: '#333' }}>
-          PICU App Score - Direct Push Deployment Test (April 2025)
-        </h1>
-        <Routes>
-          <Route path="/login" element={user ? <Navigate to="/patients" /> : <LoginPage />} />
-          <Route element={<Layout />}>
-            <Route
-              path="/"
-              element={user ? <Navigate to="/patients" /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/patients"
-              element={user ? <PatientListPage /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/patients/:patientId"
-              element={user ? <PatientDetailsPage /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/patients/:patientId/new-assessment"
-              element={user ? <ScoreSelectionPage /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/patients/:patientId/score/:scoreType"
-              element={user ? <ScoreInputPage /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/patients/:patientId/results/:assessmentId"
-              element={user ? <ScoreResultsPage /> : <Navigate to="/login" />}  // Updated component
-            />
-            <Route
-              path="/settings"
-              element={user ? <SettingsPage /> : <Navigate to="/login" />}
-            />
-          </Route>
-        </Routes>
+    <Router>
+      <div className="min-h-screen flex flex-col bg-gray-100">
+        {/* Header */}
+        <header className="bg-white shadow-md p-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">PICU Score App</h1>
+          <div className="text-sm text-gray-600">
+            Powered by xAI
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-grow container mx-auto p-4">
+          <Routes>
+            <Route path="/" element={<Navigate to="/patients" replace />} />
+            <Route path="/patients" element={<PatientListPage />} />
+            <Route path="/patients/:patientId" element={<PatientDetailsPage />} />
+            <Route path="/patients/:patientId/new-assessment" element={<NewAssessment />} />
+          </Routes>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-white shadow-inner p-4 flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+              <span className="text-gray-600">Photo</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-800">Dr Prakash Thapa, Pediatric Intensivist</p>
+              <p className="text-sm text-gray-600">prakashthapa_paed@pahs.edu.np</p>
+            </div>
+          </div>
+          <div className="text-sm text-gray-600">
+            © 2025 PICU Score App. All rights reserved to Alisha the done ;).
+          </div>
+        </footer>
       </div>
-    </BrowserRouter>
+    </Router>
   );
-};
+}
 
 export default App;

@@ -19,10 +19,13 @@ const PatientDetailsPage = () => {
         if (patientSnap.exists()) {
           const patientData = patientSnap.data();
           const ageInMonths = patientData.ageInMonths || 0;
-          let ageCategory = 'neonate';
-          if (ageInMonths >= 1 && ageInMonths < 12) ageCategory = 'infant';
-          else if (ageInMonths >= 12 && ageInMonths < 144) ageCategory = 'child';
-          else if (ageInMonths >= 144) ageCategory = 'adolescent';
+          let ageCategory;
+          if (ageInMonths < 1) ageCategory = '<1 month';
+          else if (ageInMonths < 12) ageCategory = '1 to 11 months';
+          else if (ageInMonths < 24) ageCategory = '1 to <2 years';
+          else if (ageInMonths < 60) ageCategory = '2 to <5 years';
+          else if (ageInMonths < 144) ageCategory = '5 to <12 years';
+          else ageCategory = '12 to 17 years';
           setPatient({ id: patientSnap.id, ...patientData, ageCategory });
         }
       } catch (error) {
@@ -44,7 +47,7 @@ const PatientDetailsPage = () => {
         setAssessments(assessmentsData);
 
         // Calculate total risk score
-        const scoreTypes = ['prism3', 'pelod2', 'sofa', 'pim3', 'comfortb', 'sospd', 'phoenix'];
+        const scoreTypes = ['prism3', 'pelod2', 'psofa', 'pim3', 'comfortb', 'sospd', 'phoenix'];
         let totalWeightedRisk = 0;
         let weightsSum = 0;
 
@@ -63,7 +66,7 @@ const PatientDetailsPage = () => {
                 riskValue = parseFloat(latestAssessment.calculatedScore.mortalityRisk) || 0;
                 weight = 1.5; // Higher weight for mortality predictors
                 break;
-              case 'sofa':
+              case 'psofa':
                 riskValue = parseFloat(latestAssessment.calculatedScore.mortalityRisk) || 0;
                 weight = 1.2;
                 break;
@@ -148,7 +151,7 @@ const PatientDetailsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-600">
-              Age: {patient.ageInMonths ? `${patient.ageInMonths / 12} years` : 'N/A'}
+              Age: {patient.ageInMonths ? `${(patient.ageInMonths / 12).toFixed(1)} years` : 'N/A'}
             </p>
             <p className="text-gray-600">DOB: {patient.dob || 'N/A'}</p>
             <p className="text-gray-600">MRN: {patient.mrn || 'N/A'}</p>
