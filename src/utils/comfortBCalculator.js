@@ -99,7 +99,7 @@ const calculateMuscleToneScore = (muscleTone) => {
   if (muscleTone === undefined || muscleTone === null) return 0;
   
   // Direct score from 1-5
-  return Math.min(Math.max(parseInt(movement), 1), 5);
+  return Math.min(Math.max(parseInt(muscleTone), 1), 5); // Fixed: Changed 'movement' to 'muscleTone'
 };
 
 /**
