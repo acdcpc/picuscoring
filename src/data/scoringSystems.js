@@ -77,7 +77,7 @@ const scoringSystems = [
     fields: [
       { name: 'alertness', label: 'Alertness (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'calmness', label: 'Calmness (1-5)', type: 'number', min: 1, max: 5 },
-      { name: 'respiratoryResponse', label: 'Respiratory Response (1-5)', type: 'number', min: 1, max: 5 },
+      { name: ' služ: 'respiratoryResponse', label: 'Respiratory Response (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'movement', label: 'Movement (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'muscleTone', label: 'Muscle Tone (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'facialTension', label: 'Facial Tension (1-5)', type: 'number', min: 1, max: 5 },
@@ -120,6 +120,14 @@ const scoringSystems = [
       { name: 'hematologicDysfunction', label: 'Hematologic Dysfunction (0-2)', type: 'number', min: 0, max: 2 },
       { name: 'hepaticDysfunction', label: 'Hepatic Dysfunction (0-2)', type: 'number', min: 0, max: 2 },
       { name: 'immuneDysfunction', label: 'Immune Dysfunction (0-2)', type: 'number', min: 0, max: 2 },
+      { name: 'lactateLevel', label: 'Lactate Level (mmol/L)', type: 'number', min: 0, max: 20 },
+      { name: 'plateletCount', label: 'Platelet Count (x10^3/µL)', type: 'number', min: 0, max: 1000 },
+      { name: 'bilirubinLevel', label: 'Bilirubin Level (mg/dL)', type: 'number', min: 0, max: 50 },
+      { name: 'creatinineLevel', label: 'Creatinine Level (mg/dL)', type: 'number', min: 0, max: 10 },
+      { name: 'invasiveVentilation', label: 'Invasive Ventilation', type: 'select', options: ['No', 'Yes'] },
+      { name: 'vasopressorUse', label: 'Vasopressor Use', type: 'select', options: ['No', 'Yes'] },
+      { name: 'glasgowComaScore', label: 'Glasgow Coma Score', type: 'number', min: 3, max: 15 },
+      { name: 'pao2Fio2Ratio', label: 'PaO2/FiO2 Ratio', type: 'number', min: 0, max: 500 },
     ],
   },
 ];
