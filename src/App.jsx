@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PatientListPage from './pages/PatientListPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
 import NewAssessment from './components/NewAssessment';
@@ -19,10 +19,9 @@ function App() {
         {/* Main Content */}
         <main className="flex-grow container mx-auto p-4">
           <Routes>
-            <Route path="/" element={<Navigate to="/patients" replace />} />
-            <Route path="/patients" element={<PatientListPage />} />
+            <Route path="/" element={<PatientListPage />} />
             <Route path="/patients/:patientId" element={<PatientDetailsPage />} />
-            <Route path="/patients/:patientId/NewAssessment" element={<NewAssessment />} />
+            <Route path="/patients/:patientId/new-assessment" element={<NewAssessment />} />
           </Routes>
         </main>
 
@@ -38,7 +37,7 @@ function App() {
             </div>
           </div>
           <div className="text-sm text-gray-600">
-            © 2025 PICU Score App. All rights reserved to Alisha the done ;).
+            © 2025 PICU Score App. All rights reserved the Alisha the Don.
           </div>
         </footer>
       </div>
