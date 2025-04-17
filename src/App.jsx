@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from './firebase.js';
 import PatientListPage from './pages/PatientListPage.jsx';
 import PatientDetailsPage from './pages/PatientDetailsPage.jsx';
@@ -13,29 +13,8 @@ const NewAssessmentWrapper = () => {
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) {
-        // Auto-sign-in anonymously
-        signInAnonymously(auth)
-          .then(() => console.log('Signed in anonymously'))
-          .catch((err) => {
-            console.error('Anonymous sign-in failed:', err);
-            setError('Authentication failed');
-            setLoading(false);
-          });
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-
     const fetchPatient = async () => {
       try {
         const patientRef = doc(db, 'patients', patientId);
@@ -65,9 +44,8 @@ const NewAssessmentWrapper = () => {
     };
 
     fetchPatient();
-  }, [patientId, user]);
+  }, [patientId]);
 
-  if (!user && !error) return <div>Authenticating...</div>;
   if (loading) return <div>Loading patient data...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -81,58 +59,70 @@ const NewAssessmentWrapper = () => {
 };
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (authLoading) return <div>Authenticating...</div>;
+
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col bg-gray-100">
-        {/* Header */}
-        <header className="bg-white shadow-md p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">PICU Score App</h1>
-          <div className="text-sm text-gray-600">
-            Powered by xAI
-          </div>
-        </header>
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow-md p-4 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">PICU Score App</h1>
+        <div className="text-sm text-gray-600">
+          Powered by xAI
+        </div>
+      </header>
 
-        {/* Main Content */}
-        <main className="flex-grow container mx-auto p-4">
-          <ErrorBoundary>
-            <Routes>
-              <Route path="/" element={<Navigate to="/patients" replace />} />
-              <Route path="/patients" element={<PatientListPage />} />
-              <Route path="/patients/:patientId" element={<PatientDetailsPage />} />
-              <Route
-                path="/patients/:patientId/new-assessment"
-                element={<NewAssessmentWrapper />}
-              />
-              <Route
-                path="*"
-                element={
-                  <div className="p-6 text-red-600">
-                    <h2 className="text-xl font-bold">Route Not Found</h2>
-                    <p>The requested route does not exist.</p>
-                  </div>
-                }
-              />
-            </Routes>
-          </ErrorBoundary>
-        </main>
+      {/* Main Content */}
+      <main className="flex-grow container mx-auto p-4">
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<Navigate to="/patients" replace />} />
+            <Route path="/patients" element={<PatientListPage />} />
+            <Route path="/patients/:patientId" element={<PatientDetailsPage />} />
+            <Route
+              path="/patients/:patientId/new-assessment"
+              element={<NewAssessmentWrapper />}
+            />
+            <Route
+              path="*"
+              element={
+                <div className="p-6 text-red-600">
+                  <h2 className="text-xl font-bold">Route Not Found</h2>
+                  <p>The requested route does not exist.</p>
+                </div>
+              }
+            />
+          </Routes>
+        </ErrorBoundary>
+      </main>
 
-        {/* Footer */}
-        <footer className="bg-white shadow-inner p-4 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-              <span className="text-gray-600">Photo</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-800">Dr Prakash Thapa, Pediatric Intensivist</p>
-              <p className="text-sm text-gray-600">prakashthapa_paed@pahs.edu.np</p>
-            </div>
+      {/* Footer */}
+      <footer className="bg-white shadow-inner p-4 flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+            <span className="text-gray-600">Photo</span>
           </div>
-          <div className="text-sm text-gray-600">
-            © 2025 PICU Score App. All rights reserved to my love Alisha.
+          <div>
+            <p className="text-sm font-medium text-gray-800">Dr Prakash Thapa, Pediatric Intensivist</p>
+            <p className="text-sm text-gray-600">prakashthapa_paed@pahs.edu.np</p>
           </div>
-        </footer>
-      </div>
-    </Router>
+        </div>
+        <div className="text-sm text-gray-600">
+          © 2025 PICU Score App. All rights reserved to my love Alisha.
+        </div>
+      </footer>
+    </div>
   );
 }
 
