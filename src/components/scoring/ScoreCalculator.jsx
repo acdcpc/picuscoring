@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'; // Added useState
+import React, { useEffect, useState } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../../firebase.js';
 import { calculatePRISM3Score } from '../../utils/prism3Calculator.js';
@@ -48,7 +48,7 @@ const getAgeInMonths = (ageCategory) => {
 };
 
 const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
-  const [calculatedScore, setCalculatedScore] = useState(null); // Added local state
+  const [calculatedScore, setCalculatedScore] = useState(null); // Local state for calculatedScore
 
   useEffect(() => {
     const calculateScore = async () => {
@@ -104,7 +104,7 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
     if (scoreType) {
       calculateScore();
     }
-  }, [scoreType, patientData, inputValues]); // Removed setCalculatedScore from dependencies
+  }, [scoreType, patientData, inputValues]);
 
   return (
     <div className="p-4 bg-gray-100 rounded-lg">

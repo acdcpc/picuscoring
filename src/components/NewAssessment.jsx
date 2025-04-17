@@ -1,107 +1,164 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import scoringSystems from '../data/scoringSystems.js';
-import ScoreCalculator from './scoring/ScoreCalculator.jsx';
+import React, { useState, useEffect } from 'react';
+import ScoreCalculator from './ScoreCalculator'; // Adjust path as needed
 
-const NewAssessment = () => {
+const scoringSystems = [
+  { id: 'prism3', name: 'PRISM-3' },
+  { id: 'pelod2', name: 'PELOD-2' },
+  { id: 'psofa', name: 'pSOFA' },
+  { id: 'pim3', name: 'PIM-3' },
+  { id: 'comfortb', name: 'COMFORT-B' },
+  { id: 'sospd', name: 'SOS-PD' },
+  { id: 'phoenix', name: 'Phoenix' },
+];
+
+const NewAssessment = ({ patientData }) => {
   console.log('NewAssessment component loaded');
   console.log('scoringSystems:', scoringSystems);
 
-  const { patientId } = useParams();
   const [scoreType, setScoreType] = useState('');
   const [inputValues, setInputValues] = useState({});
-  const [calculatedScore, setCalculatedScore] = useState(null);
 
-  const handleInputChange = (fieldName, value) => {
-    setInputValues((prev) => ({ ...prev, [fieldName]: value }));
+  // Handler for form inputs
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const val = type === 'checkbox' ? checked : value;
+    setInputValues((prev) => ({ ...prev, [name]: val }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted with inputValues:', inputValues);
-    // The ScoreCalculator will handle the calculation
-  };
+  useEffect(() => {
+    console.log('Rendering NewAssessment JSX');
+  }, []);
 
-  const selectedScoringSystem = scoringSystems?.find((system) => system.id === scoreType.toLowerCase());
-
-  if (!scoringSystems) {
-    console.log('scoringSystems is undefined');
-    return (
-      <div className="p-6 text-red-600">
-        <h2 className="text-xl font-bold">Error</h2>
-        <p>Scoring systems data is not available. Please check the data source.</p>
-      </div>
-    );
-  }
-
-  console.log('Rendering NewAssessment JSX');
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">New Assessment for Patient ID: {patientId}</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div>
+      <h2>New Assessment</h2>
+      <label>
+        Select Score Type:
+        <select value={scoreType} onChange={(e) => setScoreType(e.target.value)}>
+          <option value="">Select a score</option>
+          {scoringSystems.map((system) => (
+            <option key={system.id} value={system.id}>
+              {system.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {/* Example form inputs for COMFORT-B */}
+      {scoreType === 'comfortb' && (
         <div>
-          <label className="block text-gray-700 font-medium mb-1">Select Scoring System</label>
-          <select
-            value={scoreType}
-            onChange={(e) => setScoreType(e.target.value)}
-            className="w-full p-2 border rounded-lg"
-          >
-            <option value="">Select a scoring system</option>
-            {scoringSystems.map((system) => (
-              <option key={system.id} value={system.id}>
-                {system.name}
-              </option>
-            ))}
-          </select>
+          <label>
+            Alertness (1-5):
+            <input
+              type="number"
+              name="alertness"
+              value={inputValues.alertness || ''}
+              onChange={handleInputChange}
+              min="1"
+              max="5"
+            />
+          </label>
+          <label>
+            Calmness (1-5):
+            <input
+              type="number"
+              name="calmness"
+              value={inputValues.calmness || ''}
+              onChange={handleInputChange}
+              min="1"
+              max="5"
+            />
+          </label>
+          <label>
+            Respiratory Response (1-5):
+            <input
+              type="number"
+              name="respiratory"
+              value={inputValues.respiratory || ''}
+              onChange={handleInputChange}
+              min="1"
+              max="5"
+            />
+          </label>
+          <label>
+            Is Ventilated:
+            <input
+              type="checkbox"
+              name="isVentilated"
+              checked={inputValues.isVentilated || false}
+              onChange={handleInputChange}
+            />
+          </label>
+          <label>
+            Movement (1-5):
+            <input
+              type="number"
+              name="movement"
+              value={inputValues.movement || ''}
+              onChange={handleInputChange}
+              min="1"
+              max="5"
+            />
+          </label>
+          <label>
+            Muscle Tone (1-5):
+            <input
+              type="number"
+              name="muscleTone"
+              value={inputValues.muscleTone || ''}
+              onChange={handleInputChange}
+              min="1"
+              max="5"
+            />
+          </label>
+          <label>
+            Facial Tension (1-5):
+            <input
+              type="number"
+              name="facialTension"
+              value={inputValues.facialTension || ''}
+              onChange={handleInputChange}
+              min="1"
+              max="5"
+            />
+          </label>
         </div>
+      )}
 
-        {selectedScoringSystem && (
-          <div className="space-y-4">
-            {selectedScoringSystem.fields.map((field) => (
-              <div key={field.name}>
-                <label className="block text-gray-700 font-medium mb-1">{field.label}</label>
-                {field.type === 'select' ? (
-                  <select
-                    value={inputValues[field.name] || ''}
-                    onChange={(e) => handleInputChange(field.name, e.target.value)}
-                    className="w-full p-2 border rounded-lg"
-                  >
-                    <option value="">Select an option</option>
-                    {field.options.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type={field.type}
-                    value={inputValues[field.name] || ''}
-                    onChange={(e) => handleInputChange(field.name, e.target.value)}
-                    min={field.min}
-                    max={field.max}
-                    className="w-full p-2 border rounded-lg"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+      {/* Add forms for other score types as needed */}
+      {scoreType === 'prism3' && (
+        <div>
+          <label>
+            Glasgow Coma Score (3-15):
+            <input
+              type="number"
+              name="gcs"
+              value={inputValues.gcs || ''}
+              onChange={handleInputChange}
+              min="3"
+              max="15"
+            />
+          </label>
+          <label>
+            Systolic BP (mmHg):
+            <input
+              type="number"
+              name="systolicBP"
+              value={inputValues.systolicBP || ''}
+              onChange={handleInputChange}
+            />
+          </label>
+          {/* Add more fields as required for PRISM-3 */}
+        </div>
+      )}
 
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-          Calculate Score
-        </button>
-      </form>
-
+      {/* Render ScoreCalculator */}
       {scoreType && (
-        <div className="mt-6">
-          <ScoreCalculator
-            scoreType={scoreType}
-            patientData={{ id: patientId, ageCategory: inputValues.ageCategory }}
-            inputValues={inputValues}
-            setCalculatedScore={setCalculatedScore}
-          />
-        </div>
+        <ScoreCalculator
+          scoreType={scoreType}
+          patientData={patientData}
+          inputValues={inputValues}
+        />
       )}
     </div>
   );
