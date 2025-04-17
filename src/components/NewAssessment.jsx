@@ -4,6 +4,9 @@ import scoringSystems from '../data/scoringSystems';
 import ScoreCalculator from './scoring/ScoreCalculator';
 
 const NewAssessment = () => {
+  console.log('NewAssessment component rendered');
+  console.log('scoringSystems:', scoringSystems);
+
   const { patientId } = useParams();
   const [scoreType, setScoreType] = useState('');
   const [inputValues, setInputValues] = useState({});
@@ -18,7 +21,16 @@ const NewAssessment = () => {
     // The ScoreCalculator will handle the calculation
   };
 
-  const selectedScoringSystem = scoringSystems.find((system) => system.id === scoreType.toLowerCase());
+  const selectedScoringSystem = scoringSystems?.find((system) => system.id === scoreType.toLowerCase());
+
+  if (!scoringSystems) {
+    return (
+      <div className="p-6 text-red-600">
+        <h2 className="text-xl font-bold">Error</h2>
+        <p>Scoring systems data is not available. Please check the data source.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

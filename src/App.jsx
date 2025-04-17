@@ -1,8 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import PatientListPage from './pages/PatientListPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
 import NewAssessment from './components/NewAssessment';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
@@ -19,9 +20,17 @@ function App() {
         {/* Main Content */}
         <main className="flex-grow container mx-auto p-4">
           <Routes>
-            <Route path="/" element={<PatientListPage />} />
+            <Route path="/" element={<Navigate to="/patients" replace />} />
+            <Route path="/patients" element={<PatientListPage />} />
             <Route path="/patients/:patientId" element={<PatientDetailsPage />} />
-            <Route path="/patients/:patientId/new-assessment" element={<NewAssessment />} />
+            <Route
+              path="/patients/:patientId/new-assessment"
+              element={
+                <ErrorBoundary>
+                  <NewAssessment />
+                </ErrorBoundary>
+              }
+            />
           </Routes>
         </main>
 
