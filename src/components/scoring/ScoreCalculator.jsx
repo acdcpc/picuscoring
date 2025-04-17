@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../../firebase.js';
 import { calculatePRISM3Score } from '../../utils/prism3Calculator.js';
@@ -47,93 +47,66 @@ const getAgeInMonths = (ageCategory) => {
   }
 };
 
-const ScoreCalculator = ({ scoreType, patientData, inputValues }) => {
-  const [calculatedScore, setCalculatedScore] = useState(null); // Local state for calculatedScore
-
+const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedScore }) => {
   useEffect(() => {
-    const calculateScore = async () => {
-      let result = null;
-      try {
-        // Map the age category for scores that need it
-        const mappedAgeCategory = mapAgeCategory(patientData.ageCategory);
-        const ageInMonths = patientData.ageInMonths || getAgeInMonths(patientData.ageCategory);
+    // Only calculate if inputValues has at least one key (i.e., form has been submitted)
+    if (scoreType && Object.keys(inputValues).length > 0) {
+      const calculateScore = async () => {
+        let result = null;
+        try {
+          // Map the age category for scores that need it
+          const mappedAgeCategory = mapAgeCategory(patientData.ageCategory);
+          const ageInMonths = patientData.ageInMonths || getAgeInMonths(patientData.ageCategory);
 
-        switch (scoreType) {
-          case 'prism3':
-            result = calculatePRISM3Score(inputValues, mappedAgeCategory);
-            break;
-          case 'pelod2':
-            result = calculatePELOD2Score(inputValues, ageInMonths);
-            break;
-          case 'psofa':
-            result = calculatePSOFAScore({ ...inputValues, ageCategory: patientData.ageCategory });
-            break;
-          case 'pim3':
-            result = calculatePIM3Score(inputValues);
-            break;
-          case 'comfortb':
-            result = calculateCOMFORTBScore(inputValues);
-            break;
-          case 'sospd':
-            result = calculateSOSPDScore(inputValues);
-            break;
-          case 'phoenix':
-            result = calculatePhoenixScore({ ...inputValues, ageCategory: patientData.ageCategory });
-            break;
-          default:
-            throw new Error('Unknown score type');
+          switch (scoreType) {
+            case 'prism3':
+              result = calculatePRISM3Score(inputValues, mappedAgeCategory);
+              break;
+            case 'pelod2':
+              result = calculatePELOD2Score(inputValues, ageInMonths);
+              break;
+            case 'psofa':
+              result = calculatePSOFAScore({ ...inputValues, ageCategory: patientData.ageCategory });
+              break;
+            case 'pim3':
+              result = calculatePIM3Score(inputValues);
+              break;
+            case 'comfortb':
+              result = calculateCOMFORTBScore(inputValues);
+              break;
+            case 'sospd':
+              result = calculateSOSPDScore(inputValues);
+              break;
+            case 'phoenix':
+              result = calculatePhoenixScore({ ...inputValues, ageCategory: patientData.ageCategory });
+              break;
+            default:
+              throw new Error('Unknown score type');
+          }
+
+          // Save to Firestore
+          const assessmentData = {
+            patientId: patientData.id,
+            scoreType,
+            calculatedScore: result,
+            date: new Date().toISOString().split('T')[0],
+            time: new Date().toISOString().split('T')[1].split('.')[0],
+          };
+          await addDoc(collection(db, 'assessments'), assessmentData);
+
+          setCalculatedScore(result);
+        } catch (error) {
+          console.error('Error calculating score:', error);
+          setCalculatedScore({ error: error.message });
         }
+      };
 
-        // Save to Firestore
-        const assessmentData = {
-          patientId: patientData.id,
-          scoreType,
-          calculatedScore: result,
-          date: new Date().toISOString().split('T')[0],
-          time: new Date().toISOString().split('T')[1].split('.')[0],
-        };
-        await addDoc(collection(db, 'assessments'), assessmentData);
-
-        setCalculatedScore(result);
-      } catch (error) {
-        console.error('Error calculating score:', error);
-        setCalculatedScore({ error: error.message });
-      }
-    };
-
-    if (scoreType) {
       calculateScore();
     }
-  }, [scoreType, patientData, inputValues]);
+  }, [scoreType, patientData, inputValues, setCalculatedScore]);
 
-  return (
-    <div className="p-4 bg-gray-100 rounded-lg">
-      <h3 className="text-lg font-medium mb-2">Score Result</h3>
-      {calculatedScore ? (
-        calculatedScore.error ? (
-          <p className="text-red-600">Error: {calculatedScore.error}</p>
-        ) : (
-          <div>
-            <p className="text-gray-700">
-              Total Score: {calculatedScore.totalScore || 'N/A'}
-            </p>
-            {calculatedScore.mortalityRisk && (
-              <p className="text-gray-700">
-                Mortality Risk: {calculatedScore.mortalityRisk}%
-              </p>
-            )}
-            {calculatedScore.deliriumPresent !== undefined && (
-              <p className="text-gray-700">
-                Delirium Present: {calculatedScore.deliriumPresent ? 'Yes' : 'No'}
-              </p>
-            )}
-          </div>
-        )
-      ) : (
-        <p className="text-gray-600">Calculating...</p>
-      )}
-    </div>
-  );
+  // This component no longer renders anything; it only handles calculation logic
+  return null;
 };
 
 export default ScoreCalculator;

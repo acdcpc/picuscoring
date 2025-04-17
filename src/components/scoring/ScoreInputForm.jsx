@@ -17,12 +17,13 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     const field = fields.find((f) => f.name === name);
-    const error = validateField(name, value, field);
+    const inputValue = type === 'checkbox' ? checked : value;
+    const error = validateField(name, inputValue, field);
 
     setErrors((prev) => ({ ...prev, [name]: error }));
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+    setFormValues((prev) => ({ ...prev, [name]: inputValue }));
   };
 
   const handleFormSubmit = (e) => {
@@ -31,7 +32,8 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
     let hasErrors = false;
 
     fields.forEach((field) => {
-      const error = validateField(field.name, formValues[field.name] || '', field);
+      const value = formValues[field.name] || (field.type === 'checkbox' ? false : '');
+      const error = validateField(field.name, value, field);
       if (error) {
         formErrors[field.name] = error;
         hasErrors = true;
@@ -73,6 +75,16 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
                       </option>
                     )}
                   </select>
+                ) : field.type === 'checkbox' ? (
+                  <div>
+                    <input
+                      type="checkbox"
+                      name={field.name}
+                      checked={formValues[field.name] || false}
+                      onChange={handleInputChange}
+                      className="p-2"
+                    />
+                  </div>
                 ) : (
                   <div>
                     <input
@@ -86,7 +98,7 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
                       placeholder={`Enter ${field.label.toLowerCase()}`}
                       min={field.min}
                       max={field.max}
-                      step="0.1" // Allow decimal values for pH
+                      step={field.type === 'number' ? '0.1' : undefined} // Allow decimal values for numbers
                     />
                     {errors[field.name] && (
                       <p className="text-red-500 text-sm mt-1">{errors[field.name]}</p>
