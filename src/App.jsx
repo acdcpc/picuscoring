@@ -22,7 +22,7 @@ function App() {
             <Route path="/" element={<Navigate to="/patients" replace />} />
             <Route path="/patients" element={<PatientListPage />} />
             <Route path="/patients/:patientId" element={<PatientDetailsPage />} />
-            <Route path="/patients/:patientId/new-assessment" element={<NewAssessment />} />
+            <Route path="/patients/:patientId/New-assessment" element={<NewAssessment />} />
           </Routes>
         </main>
 
