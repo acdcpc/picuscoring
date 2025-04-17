@@ -1,108 +1,45 @@
-// src/pages/ScoreResultsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { v4 as uuidv4 } from 'uuid';
+import { doc, getDoc } from 'firebase/firestore';
 import ScoreCalculator from '../components/scoring/ScoreCalculator';
-import scoringSystems from '../data/scoringSystems';
 
 const ScoreResultsPage = () => {
   const { patientId, assessmentId } = useParams();
   const location = useLocation();
-  const [scoreData, setScoreData] = useState(null);
-  const [patient, setPatient] = useState(null);
+  const [assessment, setAssessment] = useState(null);
   const [calculatedScore, setCalculatedScore] = useState(null);
+
+  // Get scoreType and formValues from location state
+  const { scoreType, formValues } = location.state || {};
+
+  // Dummy patient data (replace with actual patient data fetching if needed)
+  const patientData = {
+    ageCategory: 'child',
+    ageInMonths: 60,
+  };
 
   useEffect(() => {
     const fetchAssessment = async () => {
-      if (location.state && location.state.scoreType && location.state.formValues) {
-        setScoreData({
-          scoreType: location.state.scoreType,
-          formValues: location.state.formValues,
-        });
-      } else if (assessmentId !== "new") {
-        // Fetch assessment data from Firestore if location.state is unavailable
-        try {
-          const assessmentRef = doc(db, "assessments", assessmentId);
-          const assessmentSnap = await getDoc(assessmentRef);
-          if (assessmentSnap.exists()) {
-            const data = assessmentSnap.data();
-            setScoreData({
-              scoreType: data.scoreType,
-              formValues: data.formValues,
-            });
-            setCalculatedScore(data.calculatedScore);
-          } else {
-            setScoreData(null);
-          }
-        } catch (error) {
-          console.error("Error fetching assessment:", error);
-          setScoreData(null);
+      try {
+        const docRef = doc(db, 'assessments', assessmentId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setAssessment(docSnap.data());
+        } else {
+          console.error('No such assessment!');
         }
+      } catch (error) {
+        console.error('Error fetching assessment:', error);
       }
     };
 
     fetchAssessment();
-  }, [location, assessmentId]);
+  }, [assessmentId]);
 
-  useEffect(() => {
-    const fetchPatient = async () => {
-      try {
-        const patientRef = doc(db, "patients", patientId);
-        const patientSnap = await getDoc(patientRef);
-        if (patientSnap.exists()) {
-          setPatient(patientSnap.data());
-        } else {
-          setPatient({ id: patientId, name: "Unknown Patient", ageInMonths: 0, ageCategory: "unknown" });
-        }
-      } catch (error) {
-        console.error("Error fetching patient:", error);
-        setPatient({ id: patientId, name: "Error Loading", ageInMonths: 0, ageCategory: "unknown" });
-      }
-    };
-    fetchPatient();
-  }, [patientId]);
-
-  const getAssessmentData = () => {
-    return {
-      id: assessmentId || "new",
-      type: scoreData?.scoreType || "Unknown",
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
-  };
-
-  const assessment = getAssessmentData();
-
-  const handleSave = async () => {
-    try {
-      const assessmentData = {
-        patientId,
-        scoreType: scoreData?.scoreType || "Unknown",
-        formValues: scoreData?.formValues || {},
-        calculatedScore: calculatedScore || {},
-        date: assessment.date,
-        time: assessment.time,
-      };
-      const newAssessmentId = assessmentId === "new" ? uuidv4() : assessmentId;
-      await setDoc(doc(db, "assessments", newAssessmentId), assessmentData);
-      alert("Assessment saved successfully!");
-      // Optionally redirect to the assessment results page with the new ID
-      // navigate(`/patients/${patientId}/results/${newAssessmentId}`);
-    } catch (error) {
-      console.error("Error saving assessment:", error);
-      alert("Failed to save assessment.");
-    }
-  };
-
-  if (!patient) {
-    return <div className="container mx-auto px-4 py-8">Loading patient data...</div>;
+  if (!assessment) {
+    return <div>Loading...</div>;
   }
-
-  const selectedSystem = scoreData
-    ? scoringSystems.find((system) => system.id === scoreData.scoreType)
-    : { name: "Unknown Score" };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -122,77 +59,23 @@ const ScoreResultsPage = () => {
               />
             </svg>
           </Link>
-          <h1 className="text-2xl font-bold">Score Results</h1>
-        </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-          </svg>
-          Share
-        </button>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="mb-6">
-          <h2 className="text-lg font-medium">Patient: {patient.name}</h2>
-          <p className="text-gray-600">Assessment Date: {assessment.date}</p>
-          <p className="text-gray-600">Assessment Time: {assessment.time}</p>
-        </div>
-
-        {scoreData ? (
-          <ScoreCalculator
-            scoreType={scoreData.scoreType}
-            patientData={patient}
-            inputValues={scoreData.formValues}
-            setCalculatedScore={setCalculatedScore}
-          />
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No score data available</p>
-          </div>
-        )}
-
-        <div className="mt-6 flex justify-between">
-          <button
-            onClick={handleSave}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Save
-          </button>
-          <div className="space-x-2">
-            <button className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
-              View Details
-            </button>
-            <Link
-              to={`/patients/${patientId}/new-assessment`}
-              className="inline-block bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-            >
-              New Score
-            </Link>
-          </div>
+          <h1 className="text-2xl font-bold">Assessment Results</h1>
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-lg font-medium mb-4">Clinical Recommendations</h2>
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-          <h3 className="font-medium text-blue-800 mb-2">Based on this score:</h3>
-          <ul className="list-disc pl-5 text-blue-700 space-y-2">
-            <li>Continue monitoring vital signs every 2 hours</li>
-            <li>Consider arterial blood gas analysis in 4 hours</li>
-            <li>Review medication regimen for possible adjustments</li>
-            <li>Ensure adequate fluid balance and nutrition</li>
-            <li>Reassess score in 12 hours or with clinical changes</li>
-          </ul>
-          <p className="mt-4 text-sm text-blue-600 italic">
-            Note: These are general recommendations. Clinical judgment should always prevail.
-          </p>
-        </div>
+        <p className="mb-2">Assessment Date: {assessment.date}</p>
+        <p className="mb-4">Assessment Time: {assessment.time}</p>
+        {scoreType && formValues ? (
+          <ScoreCalculator
+            scoreType={scoreType}
+            patientData={patientData}
+            inputValues={formValues}
+            setCalculatedScore={setCalculatedScore}
+          />
+        ) : (
+          <p>Error: Missing score type or form values</p>
+        )}
       </div>
     </div>
   );

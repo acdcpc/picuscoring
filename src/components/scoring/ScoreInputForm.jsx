@@ -1,14 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
+  const [errors, setErrors] = useState({});
+
+  const validateField = (name, value, field) => {
+    if (field.type === 'number' && (field.min || field.max)) {
+      const numValue = parseFloat(value);
+      if (field.min && numValue < field.min) {
+        return `Value must be at least ${field.min}`;
+      }
+      if (field.max && numValue > field.max) {
+        return `Value must be at most ${field.max}`;
+      }
+    }
+    return '';
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    const field = fields.find((f) => f.name === name);
+    const error = validateField(name, value, field);
+
+    setErrors((prev) => ({ ...prev, [name]: error }));
     setFormValues((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formValues);
+    const formErrors = {};
+    let hasErrors = false;
+
+    fields.forEach((field) => {
+      const error = validateField(field.name, formValues[field.name] || '', field);
+      if (error) {
+        formErrors[field.name] = error;
+        hasErrors = true;
+      }
+    });
+
+    setErrors(formErrors);
+    if (!hasErrors) {
+      onSubmit(formValues);
+    }
   };
 
   return (
@@ -41,16 +74,24 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
                     )}
                   </select>
                 ) : (
-                  <input
-                    type={field.type || 'text'}
-                    name={field.name}
-                    value={formValues[field.name] || ''}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded-md"
-                    placeholder={`Enter ${field.label.toLowerCase()}`}
-                    min={field.min}
-                    max={field.max}
-                  />
+                  <div>
+                    <input
+                      type={field.type || 'text'}
+                      name={field.name}
+                      value={formValues[field.name] || ''}
+                      onChange={handleInputChange}
+                      className={`w-full p-2 border rounded-md ${
+                        errors[field.name] ? 'border-red-500' : ''
+                      }`}
+                      placeholder={`Enter ${field.label.toLowerCase()}`}
+                      min={field.min}
+                      max={field.max}
+                      step="0.1" // Allow decimal values for pH
+                    />
+                    {errors[field.name] && (
+                      <p className="text-red-500 text-sm mt-1">{errors[field.name]}</p>
+                    )}
+                  </div>
                 )}
               </div>
             );
