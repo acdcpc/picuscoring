@@ -9,7 +9,7 @@
  * @param {Object} inputValues - Physiological parameters
  * @returns {Object} - Calculated scores and assessment
  */
-export const calculatePSOFAScore = (inputValues) => {
+export const calculatePsofaScore = (inputValues) => {
   if (!inputValues || typeof inputValues !== 'object') {
     throw new Error('Invalid input: inputValues must be an object');
   }
@@ -148,4 +148,4 @@ export const calculatePSOFAScore = (inputValues) => {
   };
 };
 
-export default calculatePSOFAScore;
+export default calculatePsofaScore;

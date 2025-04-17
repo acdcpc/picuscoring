@@ -11,23 +11,22 @@
 /**
  * Calculate PELOD-2 score based on physiological variables
  * 
- * @param {Object} params - Physiological parameters
- * @param {number} ageInMonths - Age in months
+ * @param {Object} inputValues - Physiological parameters including ageInMonths
  * @returns {Object} - Calculated scores and assessment
  */
-export const calculatePELOD2Score = (params, ageInMonths) => {
+export const calculatePelod2Score = (inputValues) => {
   // Validate inputs
-  if (!params || typeof params !== 'object') {
-    throw new Error('Invalid input: params must be an object');
+  if (!inputValues || typeof inputValues !== 'object') {
+    throw new Error('Invalid input: inputValues must be an object');
   }
-  const validatedAgeInMonths = typeof ageInMonths === 'number' && ageInMonths >= 0 ? ageInMonths : 102; // Default to 8.5 years if missing
+  const validatedAgeInMonths = typeof inputValues.ageInMonths === 'number' && inputValues.ageInMonths >= 0 ? inputValues.ageInMonths : 102; // Default to 8.5 years if missing
 
   // Calculate scores for each organ system
-  const neurologicalScore = calculateNeurologicalScore(params.gcs, params.pupillaryReaction);
-  const cardiovascularScore = calculateCardiovascularScore(params.lactatemia, params.map, validatedAgeInMonths);
-  const renalScore = calculateRenalScore(params.creatinine, validatedAgeInMonths);
-  const respiratoryScore = calculateRespiratoryScore(params.pao2fio2, params.paco2, params.isVentilated);
-  const hematologicalScore = calculateHematologicalScore(params.wbc, params.platelets);
+  const neurologicalScore = calculateNeurologicalScore(inputValues.gcs, inputValues.pupillaryReaction);
+  const cardiovascularScore = calculateCardiovascularScore(inputValues.lactate, inputValues.map, validatedAgeInMonths);
+  const renalScore = calculateRenalScore(inputValues.creatinine, validatedAgeInMonths);
+  const respiratoryScore = calculateRespiratoryScore(inputValues.pao2_fio2, inputValues.paco2, inputValues.invasiveVentilation === 'yes');
+  const hematologicalScore = calculateHematologicalScore(inputValues.wbc, inputValues.platelets);
   
   // Calculate total score
   const totalScore = neurologicalScore + cardiovascularScore + renalScore + 
@@ -204,4 +203,4 @@ const getSeverityCategory = (totalScore) => {
   return 'Very severe organ dysfunction';
 };
 
-export default calculatePELOD2Score;
+export default calculatePelod2Score;

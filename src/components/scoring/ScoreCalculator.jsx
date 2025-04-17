@@ -38,7 +38,7 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
           return;
         }
 
-        result = calculator({ ...inputValues, ageCategory: patientData.ageCategory });
+        result = calculator({ ...inputValues, ageCategory: patientData.ageCategory, ageInMonths: patientData.ageInMonths });
 
         // Save to Firestore
         const user = auth.currentUser;

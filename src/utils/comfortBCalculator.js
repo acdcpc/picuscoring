@@ -12,22 +12,22 @@
 /**
  * Calculate COMFORT-B score based on behavioral observations
  * 
- * @param {Object} params - Behavioral parameters
+ * @param {Object} inputValues - Behavioral parameters
  * @returns {Object} - Calculated score and assessment
  */
-export const calculateCOMFORTBScore = (params) => {
+export const calculateComfortBScore = (inputValues) => {
   // Validate inputs
-  if (!params || typeof params !== 'object') {
-    throw new Error('Invalid input: params must be an object');
+  if (!inputValues || typeof inputValues !== 'object') {
+    throw new Error('Invalid input: inputValues must be an object');
   }
 
   // Calculate scores for each component
-  const alertnessScore = calculateAlertnessScore(params.alertness);
-  const calmnessScore = calculateCalmnessScore(params.calmness);
-  const respiratoryScore = calculateRespiratoryScore(params.respiratory, params.isVentilated);
-  const movementScore = calculateMovementScore(params.movement);
-  const muscleToneScore = calculateMuscleToneScore(params.muscleTone);
-  const facialTensionScore = calculateFacialTensionScore(params.facialTension);
+  const alertnessScore = calculateAlertnessScore(inputValues.alertness);
+  const calmnessScore = calculateCalmnessScore(inputValues.calmness);
+  const respiratoryScore = calculateRespiratoryScore(inputValues.respiratory, inputValues.isVentilated);
+  const movementScore = calculateMovementScore(inputValues.movement);
+  const muscleToneScore = calculateMuscleToneScore(inputValues.muscleTone);
+  const facialTensionScore = calculateFacialTensionScore(inputValues.facialTension);
   
   // Calculate total score
   const totalScore = alertnessScore + calmnessScore + respiratoryScore + 
@@ -99,7 +99,7 @@ const calculateMuscleToneScore = (muscleTone) => {
   if (muscleTone === undefined || muscleTone === null) return 0;
   
   // Direct score from 1-5
-  return Math.min(Math.max(parseInt(muscleTone), 1), 5); // Fixed: Changed 'movement' to 'muscleTone'
+  return Math.min(Math.max(parseInt(muscleTone), 1), 5);
 };
 
 /**
@@ -199,4 +199,4 @@ const getClinicalInterpretation = (totalScore) => {
  * 5 - Facial muscles contorted and grimacing
  */
 
-export default calculateCOMFORTBScore;
+export default calculateComfortBScore;

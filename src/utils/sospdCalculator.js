@@ -10,7 +10,7 @@
  * @param {Object} inputValues - Symptom parameters
  * @returns {Object} - Delirium assessment
  */
-export const calculateSOSPDScore = (inputValues) => {
+export const calculateSospdScore = (inputValues) => {
   // Validate inputs
   if (!inputValues || typeof inputValues !== 'object') {
     throw new Error('Invalid input: inputValues must be an object');
@@ -98,4 +98,4 @@ export const calculateSOSPDScore = (inputValues) => {
   };
 };
 
-export default calculateSOSPDScore;
+export default calculateSospdScore;

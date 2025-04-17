@@ -20,33 +20,37 @@ const AGE_CATEGORIES = {
 /**
  * Calculate PRISM-3 score based on physiological variables
  * 
- * @param {Object} params - Physiological parameters
- * @param {string} ageCategory - Age category of the patient
+ * @param {Object} inputValues - Physiological parameters including ageCategory
  * @returns {Object} - Calculated scores and risk assessment
  */
-export const calculatePRISM3Score = (params, ageCategory) => {
+export const calculatePrism3Score = (inputValues) => {
+  if (!inputValues || typeof inputValues !== 'object') {
+    throw new Error('Invalid input: inputValues must be an object');
+  }
+
+  const ageCategory = inputValues.ageCategory || 'child'; // Default to 'child' if not provided
   let neurologicScore = 0;
   let nonNeurologicScore = 0;
   
   // Calculate Neurologic Score
-  neurologicScore += calculateGCSScore(params.gcs);
-  neurologicScore += calculatePupillaryReflexScore(params.pupillaryReflexes);
+  neurologicScore += calculateGCSScore(inputValues.gcs);
+  neurologicScore += calculatePupillaryReflexScore(inputValues.pupillaryReflexes);
   
   // Calculate Non-Neurologic Score
-  nonNeurologicScore += calculateSystolicBPScore(params.systolicBP, ageCategory);
-  nonNeurologicScore += calculateHeartRateScore(params.heartRate, ageCategory);
-  nonNeurologicScore += calculateTemperatureScore(params.temperature);
-  nonNeurologicScore += calculateAcidosisScore(params.pH, params.totalCO2);
-  nonNeurologicScore += calculatePaO2Score(params.paO2);
-  nonNeurologicScore += calculatePCO2Score(params.pCO2);
-  nonNeurologicScore += calculateGlucoseScore(params.glucose);
-  nonNeurologicScore += calculatePotassiumScore(params.potassium);
-  nonNeurologicScore += calculateCreatinineScore(params.creatinine, ageCategory);
-  nonNeurologicScore += calculateUreaScore(params.urea);
-  nonNeurologicScore += calculateWBCScore(params.wbc);
-  nonNeurologicScore += calculatePTScore(params.pt);
-  nonNeurologicScore += calculatePTTScore(params.ptt);
-  nonNeurologicScore += calculatePlateletsScore(params.platelets);
+  nonNeurologicScore += calculateSystolicBPScore(inputValues.systolicBP, ageCategory);
+  nonNeurologicScore += calculateHeartRateScore(inputValues.heartRate, ageCategory);
+  nonNeurologicScore += calculateTemperatureScore(inputValues.temperature);
+  nonNeurologicScore += calculateAcidosisScore(inputValues.pH, inputValues.totalCO2);
+  nonNeurologicScore += calculatePaO2Score(inputValues.paO2);
+  nonNeurologicScore += calculatePCO2Score(inputValues.pCO2);
+  nonNeurologicScore += calculateGlucoseScore(inputValues.glucose);
+  nonNeurologicScore += calculatePotassiumScore(inputValues.potassium);
+  nonNeurologicScore += calculateCreatinineScore(inputValues.creatinine, ageCategory);
+  nonNeurologicScore += calculateUreaScore(inputValues.urea);
+  nonNeurologicScore += calculateWBCScore(inputValues.wbc);
+  nonNeurologicScore += calculatePTScore(inputValues.pt);
+  nonNeurologicScore += calculatePTTScore(inputValues.ptt);
+  nonNeurologicScore += calculatePlateletsScore(inputValues.platelets);
   
   const totalScore = neurologicScore + nonNeurologicScore;
   const mortalityRisk = calculateMortalityRisk(totalScore);
@@ -79,8 +83,8 @@ const calculateGCSScore = (gcs) => {
 const calculatePupillaryReflexScore = (pupillaryReflexes) => {
   if (!pupillaryReflexes) return 0;
   
-  if (pupillaryReflexes === 'both fixed') return 4;
-  if (pupillaryReflexes === 'one fixed') return 2;
+  if (pupillaryReflexes === 'both_fixed') return 4;
+  if (pupillaryReflexes === 'one_fixed') return 2;
   return 0; // Both reactive
 };
 
@@ -338,4 +342,4 @@ const getRiskCategory = (mortalityRisk) => {
   return 'Extremely High Risk';
 };
 
-export default calculatePRISM3Score;
+export default calculatePrism3Score;

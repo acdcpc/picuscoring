@@ -11,12 +11,16 @@
 /**
  * Calculate PIM-3 score based on admission variables
  * 
- * @param {Object} params - Admission parameters
+ * @param {Object} inputValues - Admission parameters
  * @returns {Object} - Calculated score and risk assessment
  */
-export const calculatePIM3Score = (params) => {
+export const calculatePim3Score = (inputValues) => {
+  if (!inputValues || typeof inputValues !== 'object') {
+    throw new Error('Invalid input: inputValues must be an object');
+  }
+
   // Calculate the logit (log odds) using the PIM-3 equation
-  const logit = calculateLogit(params);
+  const logit = calculateLogit(inputValues);
   
   // Convert logit to probability of death
   const probability = calculateProbability(logit);
@@ -38,7 +42,7 @@ export const calculatePIM3Score = (params) => {
 /**
  * Calculate the logit (log odds) using the PIM-3 equation
  */
-const calculateLogit = (params) => {
+const calculateLogit = (inputValues) => {
   // Extract parameters with default values if not provided
   const {
     systolicBP = 120,
@@ -52,7 +56,7 @@ const calculateLogit = (params) => {
     isCardiacBypass = false,
     highRiskDiagnosis = 'none',
     lowRiskDiagnosis = 'none'
-  } = params;
+  } = inputValues;
   
   // Constants for PIM-3 equation (simplified for prototype)
   const INTERCEPT = -3.8233;
@@ -232,4 +236,4 @@ export const LOW_RISK_DIAGNOSES = [
   { id: 'seizure_disorder', name: 'Seizure disorder' }
 ];
 
-export default calculatePIM3Score;
+export default calculatePim3Score;
