@@ -12,7 +12,6 @@ const scoringSystems = [
   { id: 'phoenix', name: 'Phoenix' },
 ];
 
-// Define fields for each score type
 const scoreFields = {
   prism3: [
     { name: 'gcs', label: 'Glasgow Coma Score', type: 'number', min: 3, max: 15 },
@@ -79,16 +78,25 @@ const scoreFields = {
     { name: 'oxygenTherapy', label: 'Oxygen Therapy', type: 'select', options: ['yes', 'no'] },
   ],
   phoenix: [
-    { name: 'temperature', label: 'Temperature (°C)', type: 'number', min: 30, max: 45 },
-    { name: 'heartRate', label: 'Heart Rate (bpm)', type: 'number', min: 0 },
-    { name: 'respiratoryRate', label: 'Respiratory Rate (breaths/min)', type: 'number', min: 0 },
-    { name: 'systolicBP', label: 'Systolic BP (mmHg)', type: 'number', min: 0 },
-    { name: 'consciousness', label: 'Consciousness', type: 'select', options: ['normal', 'altered'] },
-    { name: 'wbc', label: 'WBC (x10^9/L)', type: 'number', min: 0 },
-    { name: 'skinPerfusion', label: 'Skin Perfusion', type: 'select', options: ['normal', 'cold', 'delayed'] },
+    // Respiratory (max 3 points)
+    { name: 'oxygenMeasurement', label: 'Oxygen Measurement', type: 'select', options: ['PaO2', 'SpO2'] },
+    { name: 'pao2', label: 'PaO2 (mmHg)', type: 'number', min: 0 },
     { name: 'spo2', label: 'SpO2 (%)', type: 'number', min: 0, max: 100 },
+    { name: 'respiratorySupport', label: 'Respiratory Support', type: 'select', options: ['none', 'non_imv', 'imv'] },
+    // Cardiovascular (max 6 points)
+    { name: 'vasoactiveMedications', label: 'Vasoactive Medications', type: 'select', options: ['0', '1', '2_or_more'] },
+    { name: 'lactate', label: 'Lactate (mmol/L)', type: 'number', min: 0 },
+    { name: 'map', label: 'Mean Arterial Pressure (mmHg)', type: 'number', min: 0 },
+    // Coagulation (max 2 points)
+    { name: 'platelets', label: 'Platelets (x10³ μL)', type: 'number', min: 0 },
+    { name: 'inr', label: 'INR', type: 'number', min: 0 },
+    { name: 'dDimer', label: 'D-dimer (mg/L FEU)', type: 'number', min: 0 },
+    { name: 'fibrinogen', label: 'Fibrinogen (mg/dL)', type: 'number', min: 0 },
+    // Neurological (max 2 points)
+    { name: 'gcs', label: 'Glasgow Coma Score', type: 'number', min: 3, max: 15 },
+    { name: 'pupils', label: 'Pupillary Reaction', type: 'select', options: ['reactive', 'fixed'] },
+    // Systemic Infection (for sepsis diagnosis)
     { name: 'systemicInfection', label: 'Systemic Infection', type: 'select', options: ['0', '1'] },
-    // Note: If you need custom Phoenix fields (e.g., lactate, FiO2), add them here and update phoenixCalculator.js
   ],
 };
 
@@ -100,14 +108,12 @@ const NewAssessment = ({ patientData = { id: 'default', ageCategory: '5 to <12 y
   const [calculatedScore, setCalculatedScore] = useState(null);
   const [formError, setFormError] = useState('');
 
-  // Reset form values when score type changes
   useEffect(() => {
     setFormValues({});
     setCalculatedScore(null);
     setFormError('');
   }, [scoreType]);
 
-  // Handle form submission with validation
   const handleSubmit = (values) => {
     console.log('NewAssessment formValues:', values);
     const requiredFields = scoreFields[scoreType] || [];
@@ -122,8 +128,8 @@ const NewAssessment = ({ patientData = { id: 'default', ageCategory: '5 to <12 y
     }
 
     setFormError('');
-    setCalculatedScore(null); // Reset previous score
-    setFormValues(values); // Update form values
+    setCalculatedScore(null);
+    setFormValues(values);
   };
 
   const fields = scoreType ? scoreFields[scoreType] || [] : [];
@@ -143,7 +149,6 @@ const NewAssessment = ({ patientData = { id: 'default', ageCategory: '5 to <12 y
         </select>
       </label>
 
-      {/* Render ScoreInputForm */}
       {scoreType && (
         <>
           <ScoreInputForm
@@ -158,7 +163,6 @@ const NewAssessment = ({ patientData = { id: 'default', ageCategory: '5 to <12 y
         </>
       )}
 
-      {/* Render ScoreCalculator */}
       {scoreType && (
         <ScoreCalculator
           scoreType={scoreType}
@@ -168,7 +172,6 @@ const NewAssessment = ({ patientData = { id: 'default', ageCategory: '5 to <12 y
         />
       )}
 
-      {/* Display the calculated score */}
       {calculatedScore && (
         <div className="mt-4 p-4 bg-gray-100 rounded-lg">
           <h3 className="text-lg font-medium mb-2">Score Result</h3>
