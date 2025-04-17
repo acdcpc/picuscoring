@@ -47,16 +47,67 @@ const getAgeInMonths = (ageCategory) => {
   }
 };
 
+// Define fields for validation
+const scoreFields = {
+  prism3: [
+    'gcs', 'systolicBP', 'heartRate', 'temperature', 'pao2', 'paco2',
+    'glucose', 'potassium', 'creatinine', 'wbc', 'platelets', 'ph'
+  ],
+  pelod2: [
+    'gcs', 'pupillaryReaction', 'lactate', 'pao2_fio2', 'paco2',
+    'invasiveVentilation', 'creatinine', 'wbc', 'platelets'
+  ],
+  psofa: [
+    'pao2', 'spo2', 'fio2', 'oxygenMeasurement', 'mechanicalVentilation',
+    'platelets', 'bilirubin', 'meanArterialPressure', 'dopamine', 'dobutamine',
+    'epinephrine', 'norepinephrine', 'glasgowComaScore', 'creatinine'
+  ],
+  pim3: [
+    'systolicBP', 'pao2', 'fio2', 'baseExcess', 'pupillaryReaction',
+    'mechanicalVentilation'
+  ],
+  comfortb: [
+    'alertness', 'calmness', 'respiratory', 'isVentilated', 'movement',
+    'muscleTone', 'facialTension'
+  ],
+  sospd: [
+    'respiratoryRate', 'spo2', 'fio2', 'oxygenTherapy'
+  ],
+  phoenix: [
+    'temperature', 'heartRate', 'respiratoryRate', 'systolicBP', 'consciousness',
+    'wbc', 'skinPerfusion', 'spo2', 'systemicInfection'
+  ],
+};
+
 const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedScore }) => {
   useEffect(() => {
-    // Only calculate if inputValues has at least one key (i.e., form has been submitted)
+    // Only calculate if scoreType is valid and inputValues has data
     if (scoreType && Object.keys(inputValues).length > 0) {
       const calculateScore = async () => {
         let result = null;
         try {
-          // Map the age category for scores that need it
-          const mappedAgeCategory = mapAgeCategory(patientData.ageCategory);
-          const ageInMonths = patientData.ageInMonths || getAgeInMonths(patientData.ageCategory);
+          // Log patientData for debugging
+          console.log('ScoreCalculator patientData:', patientData);
+
+          // Check if patientData exists
+          if (!patientData) {
+            setCalculatedScore({ error: 'Patient data is missing' });
+            return;
+          }
+
+          // Use default ageCategory if missing
+          const effectiveAgeCategory = patientData.ageCategory || '5 to <12 years';
+          const mappedAgeCategory = mapAgeCategory(effectiveAgeCategory);
+          const ageInMonths = patientData.ageInMonths || getAgeInMonths(effectiveAgeCategory);
+
+          // Validate required fields
+          const requiredFields = scoreFields[scoreType] || [];
+          const missingFields = requiredFields.filter(
+            field => inputValues[field] === undefined || inputValues[field] === ''
+          );
+          if (missingFields.length > 0) {
+            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+          }
 
           switch (scoreType) {
             case 'prism3':
@@ -66,7 +117,7 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
               result = calculatePELOD2Score(inputValues, ageInMonths);
               break;
             case 'psofa':
-              result = calculatePSOFAScore({ ...inputValues, ageCategory: patientData.ageCategory });
+              result = calculatePSOFAScore({ ...inputValues, ageCategory: effectiveAgeCategory });
               break;
             case 'pim3':
               result = calculatePIM3Score(inputValues);
@@ -78,7 +129,7 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
               result = calculateSOSPDScore(inputValues);
               break;
             case 'phoenix':
-              result = calculatePhoenixScore({ ...inputValues, ageCategory: patientData.ageCategory });
+              result = calculatePhoenixScore({ ...inputValues, ageCategory: effectiveAgeCategory });
               break;
             default:
               throw new Error('Unknown score type');
@@ -86,7 +137,7 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
 
           // Save to Firestore
           const assessmentData = {
-            patientId: patientData.id,
+            patientId: patientData.id || 'unknown',
             scoreType,
             calculatedScore: result,
             date: new Date().toISOString().split('T')[0],
@@ -105,7 +156,6 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
     }
   }, [scoreType, patientData, inputValues, setCalculatedScore]);
 
-  // This component no longer renders anything; it only handles calculation logic
   return null;
 };
 

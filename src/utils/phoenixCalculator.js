@@ -1,17 +1,15 @@
 /**
  * Phoenix Sepsis Score Calculator
  * 
- * This module implements the Phoenix Sepsis score for assessing sepsis in pediatric patients.
+ * Implements the Phoenix Sepsis Score for pediatric sepsis assessment.
  */
 
 /**
  * Calculate Phoenix Sepsis score based on physiological variables
- * 
  * @param {Object} inputValues - Physiological parameters
  * @returns {Object} - Calculated scores and assessment
  */
 export const calculatePhoenixScore = (inputValues) => {
-  // Validate inputs
   if (!inputValues || typeof inputValues !== 'object') {
     throw new Error('Invalid input: inputValues must be an object');
   }
@@ -19,180 +17,123 @@ export const calculatePhoenixScore = (inputValues) => {
   let totalScore = 0;
   const scoreDetails = {};
 
-  // Helper function to get MAP thresholds based on age
-  const getMAPThreshold = (ageCategory) => {
+  // Age-specific thresholds
+  const getAgeThresholds = (ageCategory) => {
     switch (ageCategory) {
       case '<1 month':
-        return 30; // MAP < 30 mmHg
+        return { hrMin: 100, hrMax: 180, rrMin: 30, rrMax: 60, sbpMin: 60 };
       case '1 to 11 months':
-        return 39; // MAP < 39 mmHg
+        return { hrMin: 90, hrMax: 160, rrMin: 30, rrMax: 50, sbpMin: 70 };
       case '1 to <2 years':
-        return 44; // MAP < 44 mmHg
+        return { hrMin: 80, hrMax: 150, rrMin: 25, rrMax: 40, sbpMin: 74 };
       case '2 to <5 years':
-        return 47; // MAP < 47 mmHg
+        return { hrMin: 70, hrMax: 140, rrMin: 22, rrMax: 34, sbpMin: 76 };
       case '5 to <12 years':
-        return 55; // MAP < 55 mmHg
+        return { hrMin: 60, hrMax: 130, rrMin: 18, rrMax: 30, sbpMin: 80 };
       case '12 to 17 years':
-        return 60; // MAP < 60 mmHg
+        return { hrMin: 55, hrMax: 120, rrMin: 14, rrMax: 25, sbpMin: 83 };
       default:
-        return 55; // Default to a reasonable value if age is not specified
+        return { hrMin: 60, hrMax: 130, rrMin: 18, rrMax: 30, sbpMin: 80 };
     }
   };
 
-  // Helper function to calculate PaO2/FiO2 or SpO2/FiO2 ratio
-  const calculateOxygenationRatio = (inputValues) => {
-    const fio2 = (parseFloat(inputValues.fio2) || 21) / 100; // Convert FiO2 percentage to decimal
-    if (inputValues.oxygenMeasurement === 'PaO2') {
-      const pao2 = parseFloat(inputValues.pao2) || 0;
-      return pao2 / fio2;
-    } else {
-      const spo2 = parseFloat(inputValues.spo2) || 0;
-      return spo2 / fio2; // Simplified for SpO2, MDCalc uses a more complex conversion
-    }
-  };
+  const thresholds = getAgeThresholds(inputValues.ageCategory);
 
-  // Respiratory Score (max 3 points)
-  let respiratoryScore = 0;
-  const oxygenationRatio = calculateOxygenationRatio(inputValues);
-  const respiratorySupport = inputValues.respiratorySupport || 'None';
-
-  // MDCalc uses different thresholds based on respiratory support and oxygenation
-  if (respiratorySupport === 'IMV') {
-    if (oxygenationRatio < 100) {
-      respiratoryScore = 3; // Severe dysfunction
-    } else if (oxygenationRatio < 200) {
-      respiratoryScore = 2; // Moderate dysfunction
-    } else if (oxygenationRatio < 300) {
-      respiratoryScore = 1; // Mild dysfunction
-    }
-  } else if (respiratorySupport === 'Any, excluding IMV') {
-    if (oxygenationRatio < 200) {
-      respiratoryScore = 2; // Moderate dysfunction
-    } else if (oxygenationRatio < 300) {
-      respiratoryScore = 1; // Mild dysfunction
-    }
+  // Temperature (2 points)
+  const temperature = parseFloat(inputValues.temperature) || 0;
+  if (temperature > 38.5 || temperature < 36.0) {
+    totalScore += 2;
+    scoreDetails.temperatureScore = 2;
   } else {
-    if (oxygenationRatio < 300) {
-      respiratoryScore = 1; // Mild dysfunction
-    }
+    scoreDetails.temperatureScore = 0;
   }
-  totalScore += respiratoryScore;
-  scoreDetails.respiratoryScore = respiratoryScore;
 
-  // Cardiovascular Score (max 6 points)
-  let cardiovascularScore = 0;
-  // Vasoactive Medications
-  const vasoactiveMeds = inputValues.vasoactiveMedications || 'None';
-  if (vasoactiveMeds === '1') {
-    cardiovascularScore += 1;
-  } else if (vasoactiveMeds === '≥2') {
-    cardiovascularScore += 2;
+  // Heart Rate (1 point)
+  const heartRate = parseFloat(inputValues.heartRate) || 0;
+  if (heartRate < thresholds.hrMin || heartRate > thresholds.hrMax) {
+    totalScore += 1;
+    scoreDetails.heartRateScore = 1;
+  } else {
+    scoreDetails.heartRateScore = 0;
   }
-  // Lactate
-  const lactate = parseFloat(inputValues.lactateLevel) || 0;
-  if (lactate >= 5 && lactate <= 10.9) {
-    cardiovascularScore += 1;
-  } else if (lactate > 10.9) {
-    cardiovascularScore += 2;
-  }
-  // MAP (age-adjusted)
-  const map = parseFloat(inputValues.meanArterialPressure) || 0;
-  const mapThreshold = getMAPThreshold(inputValues.ageCategory);
-  if (map > 0 && map < mapThreshold) {
-    cardiovascularScore += 1; // MAP below age-specific threshold
-  }
-  cardiovascularScore = Math.min(cardiovascularScore, 6); // Cap at max 6 points
-  totalScore += cardiovascularScore;
-  scoreDetails.cardiovascularScore = cardiovascularScore;
 
-  // Coagulation Score (max 2 points)
-  let coagulationScore = 0;
-  const platelets = parseFloat(inputValues.plateletCount) || 0;
-  const inr = parseFloat(inputValues.inr) || 0;
-  const dDimer = parseFloat(inputValues.dDimer) || 0;
-  const fibrinogen = parseFloat(inputValues.fibrinogen) || 0;
+  // Respiratory Rate (1 point)
+  const respiratoryRate = parseFloat(inputValues.respiratoryRate) || 0;
+  if (respiratoryRate < thresholds.rrMin || respiratoryRate > thresholds.rrMax) {
+    totalScore += 1;
+    scoreDetails.respiratoryRateScore = 1;
+  } else {
+    scoreDetails.respiratoryRateScore = 0;
+  }
 
-  if (platelets > 0 && platelets < 100) {
-    coagulationScore += 1;
+  // Blood Pressure (1 point)
+  const systolicBP = parseFloat(inputValues.systolicBP) || 0;
+  if (systolicBP > 0 && systolicBP < thresholds.sbpMin) {
+    totalScore += 1;
+    scoreDetails.bloodPressureScore = 1;
+  } else {
+    scoreDetails.bloodPressureScore = 0;
   }
-  if (inr > 1.3) {
-    coagulationScore += 1;
-  }
-  if (dDimer > 2) {
-    coagulationScore += 1;
-  }
-  if (fibrinogen > 0 && fibrinogen < 100) {
-    coagulationScore += 1;
-  }
-  coagulationScore = Math.min(coagulationScore, 2); // Cap at max 2 points
-  totalScore += coagulationScore;
-  scoreDetails.coagulationScore = coagulationScore;
 
-  // Neurological Score (max 2 points)
-  let neurologicScore = 0;
-  const gcs = parseInt(inputValues.glasgowComaScore) || 15;
-  const pupilsFixed = inputValues.pupilsFixed || 'No';
-
-  if (gcs <= 10) {
-    neurologicScore += 1;
+  // Consciousness (1 point)
+  const consciousness = inputValues.consciousness || 'normal';
+  if (consciousness !== 'normal') {
+    totalScore += 1;
+    scoreDetails.consciousnessScore = 1;
+  } else {
+    scoreDetails.consciousnessScore = 0;
   }
-  if (pupilsFixed === 'Yes') {
-    neurologicScore = 2; // Overrides GCS if pupils are fixed bilaterally
+
+  // White Blood Cell Count (1 point)
+  const wbc = parseFloat(inputValues.wbc) || 0;
+  if (wbc > 0 && (wbc < 5000 || wbc > 15000)) {
+    totalScore += 1;
+    scoreDetails.wbcScore = 1;
+  } else {
+    scoreDetails.wbcScore = 0;
   }
-  totalScore += neurologicScore;
-  scoreDetails.neurologicScore = neurologicScore;
 
-  // Systemic Infection (0–1)
-  const systemicInfectionScore = parseInt(inputValues.systemicInfection) || 0;
-  totalScore += systemicInfectionScore;
-  scoreDetails.systemicInfectionScore = systemicInfectionScore;
+  // Skin Perfusion (1 point)
+  const skinPerfusion = inputValues.skinPerfusion || 'normal';
+  if (skinPerfusion === 'cold' || skinPerfusion === 'delayed') {
+    totalScore += 1;
+    scoreDetails.skinPerfusionScore = 1;
+  } else {
+    scoreDetails.skinPerfusionScore = 0;
+  }
 
-  // Additional Details (for display purposes)
-  scoreDetails.ageCategory = inputValues.ageCategory || 'Not specified';
-  scoreDetails.glasgowComaScore = gcs;
-  scoreDetails.pao2 = parseFloat(inputValues.pao2) || 0;
-  scoreDetails.spo2 = parseFloat(inputValues.spo2) || 0;
-  scoreDetails.fio2 = parseFloat(inputValues.fio2) || 0;
-  scoreDetails.oxygenationRatio = oxygenationRatio;
-  scoreDetails.respiratorySupport = respiratorySupport;
-  scoreDetails.vasoactiveMedications = vasoactiveMeds;
-  scoreDetails.lactateLevel = lactate;
-  scoreDetails.meanArterialPressure = map;
-  scoreDetails.plateletCount = platelets;
-  scoreDetails.inr = inr;
-  scoreDetails.dDimer = dDimer;
-  scoreDetails.fibrinogen = fibrinogen;
-  scoreDetails.pupilsFixed = pupilsFixed;
+  // Oxygen Saturation (1 point)
+  const spo2 = parseFloat(inputValues.spo2) || 0;
+  if (spo2 > 0 && spo2 < 90) {
+    totalScore += 1;
+    scoreDetails.spo2Score = 1;
+  } else {
+    scoreDetails.spo2Score = 0;
+  }
+
+  // Systemic Infection (0-1)
+  const systemicInfection = parseInt(inputValues.systemicInfection) || 0;
+  totalScore += systemicInfection;
+  scoreDetails.systemicInfectionScore = systemicInfection;
 
   // Interpretation
   let sepsisStatus = 'No Sepsis';
   let clinicalInterpretation = '';
-  let mortalityRisk = 0;
-
-  if (totalScore >= 2 && systemicInfectionScore === 1) {
+  if (totalScore >= 2 && systemicInfection === 1) {
     sepsisStatus = 'Sepsis Present';
-    clinicalInterpretation = 'The patient meets criteria for sepsis due to a score ≥ 2 with confirmed or suspected infection.';
-    if (cardiovascularScore >= 1 && vasoactiveMeds !== 'None') {
-      sepsisStatus = 'Septic Shock Present';
-      clinicalInterpretation = 'The patient meets criteria for septic shock due to sepsis with cardiovascular dysfunction and vasoactive medication use.';
-    }
+    clinicalInterpretation = 'Patient meets criteria for sepsis (score ≥2 with infection).';
   }
 
-  // Simplified Mortality Risk (based on total score, for illustration)
-  if (totalScore >= 2 && totalScore < 5) {
-    mortalityRisk = 5; // Low risk
-  } else if (totalScore >= 5 && totalScore < 8) {
-    mortalityRisk = 15; // Moderate risk
-  } else if (totalScore >= 8) {
-    mortalityRisk = 30; // High risk
-  }
+  // Mortality Risk (simplified)
+  const mortalityRisk = totalScore >= 2 ? Math.min(5 + totalScore * 2, 30) : 0;
 
   return {
     totalScore,
     sepsisStatus,
     mortalityRisk,
     clinicalInterpretation,
-    ...scoreDetails,
+    ageCategory: inputValues.ageCategory || 'Not specified',
+    ...scoreDetails
   };
 };
 

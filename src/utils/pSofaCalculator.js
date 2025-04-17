@@ -1,18 +1,15 @@
 /**
  * pSOFA Score Calculator
  * 
- * This module implements the Pediatric Sequential Organ Failure Assessment (pSOFA) score
- * for assessing organ dysfunction in pediatric intensive care units.
+ * Implements the Pediatric Sequential Organ Failure Assessment (pSOFA) score.
  */
 
 /**
  * Calculate pSOFA score based on physiological variables
- * 
  * @param {Object} inputValues - Physiological parameters
  * @returns {Object} - Calculated scores and assessment
  */
 export const calculatePSOFAScore = (inputValues) => {
-  // Validate inputs
   if (!inputValues || typeof inputValues !== 'object') {
     throw new Error('Invalid input: inputValues must be an object');
   }
@@ -20,7 +17,6 @@ export const calculatePSOFAScore = (inputValues) => {
   let totalScore = 0;
   const scoreDetails = {};
 
-  // Helper function to get age-adjusted thresholds
   const getAgeAdjustedThresholds = (ageCategory) => {
     switch (ageCategory) {
       case '<1 month':
@@ -36,7 +32,7 @@ export const calculatePSOFAScore = (inputValues) => {
       case '12 to 17 years':
         return { map: 65, creatinine: 1.2 };
       default:
-        return { map: 60, creatinine: 1.0 }; // Default values
+        return { map: 60, creatinine: 1.0 };
     }
   };
 
@@ -45,21 +41,27 @@ export const calculatePSOFAScore = (inputValues) => {
   // Respiratory Score (0-4)
   let respiratoryScore = 0;
   const fio2 = (parseFloat(inputValues.fio2) || 21) / 100;
+  const ventilated = inputValues.mechanicalVentilation === 'yes';
   let oxygenationRatio;
   if (inputValues.oxygenMeasurement === 'PaO2') {
     const pao2 = parseFloat(inputValues.pao2) || 0;
     oxygenationRatio = pao2 / fio2;
+    if (oxygenationRatio >= 400) respiratoryScore = 0;
+    else if (oxygenationRatio >= 300) respiratoryScore = 1;
+    else if (oxygenationRatio >= 200) respiratoryScore = 2;
+    else if (oxygenationRatio >= 100 && ventilated) respiratoryScore = 3;
+    else if (oxygenationRatio < 100 && ventilated) respiratoryScore = 4;
+    else respiratoryScore = 2; // Non-ventilated severe cases
   } else {
     const spo2 = parseFloat(inputValues.spo2) || 0;
-    oxygenationRatio = spo2 / fio2; // Simplified for SpO2
+    oxygenationRatio = spo2 / fio2;
+    if (oxygenationRatio >= 292) respiratoryScore = 0;
+    else if (oxygenationRatio >= 221) respiratoryScore = 1;
+    else if (oxygenationRatio >= 148) respiratoryScore = 2;
+    else if (oxygenationRatio >= 67 && ventilated) respiratoryScore = 3;
+    else if (oxygenationRatio < 67 && ventilated) respiratoryScore = 4;
+    else respiratoryScore = 2;
   }
-
-  if (oxygenationRatio >= 400) respiratoryScore = 0;
-  else if (oxygenationRatio >= 300) respiratoryScore = 1;
-  else if (oxygenationRatio >= 200) respiratoryScore = 2;
-  else if (oxygenationRatio >= 100) respiratoryScore = 3;
-  else respiratoryScore = 4;
-
   totalScore += respiratoryScore;
   scoreDetails.respiratoryScore = respiratoryScore;
 
@@ -71,7 +73,6 @@ export const calculatePSOFAScore = (inputValues) => {
   else if (platelets >= 50) coagulationScore = 2;
   else if (platelets >= 20) coagulationScore = 3;
   else coagulationScore = 4;
-
   totalScore += coagulationScore;
   scoreDetails.coagulationScore = coagulationScore;
 
@@ -83,7 +84,6 @@ export const calculatePSOFAScore = (inputValues) => {
   else if (bilirubin < 6.0) liverScore = 2;
   else if (bilirubin < 12.0) liverScore = 3;
   else liverScore = 4;
-
   totalScore += liverScore;
   scoreDetails.liverScore = liverScore;
 
@@ -94,13 +94,11 @@ export const calculatePSOFAScore = (inputValues) => {
   const dobutamine = parseFloat(inputValues.dobutamine) || 0;
   const epinephrine = parseFloat(inputValues.epinephrine) || 0;
   const norepinephrine = parseFloat(inputValues.norepinephrine) || 0;
-
-  if (map >= thresholds.map) cardiovascularScore = 0;
-  else if (map >= (thresholds.map - 10)) cardiovascularScore = 1;
-  else if (dopamine <= 5 || dobutamine > 0) cardiovascularScore = 2;
-  else if (dopamine <= 15 || epinephrine <= 0.1 || norepinephrine <= 0.1) cardiovascularScore = 3;
-  else cardiovascularScore = 4;
-
+  if (dopamine > 15 || epinephrine > 0.1 || norepinephrine > 0.1) cardiovascularScore = 4;
+  else if (dopamine > 5 || dobutamine > 0 || epinephrine > 0) cardiovascularScore = 3;
+  else if (dopamine > 0) cardiovascularScore = 2;
+  else if (map < thresholds.map) cardiovascularScore = 1;
+  else cardiovascularScore = 0;
   totalScore += cardiovascularScore;
   scoreDetails.cardiovascularScore = cardiovascularScore;
 
@@ -112,7 +110,6 @@ export const calculatePSOFAScore = (inputValues) => {
   else if (gcs >= 6) neurologicalScore = 2;
   else if (gcs >= 3) neurologicalScore = 3;
   else neurologicalScore = 4;
-
   totalScore += neurologicalScore;
   scoreDetails.neurologicalScore = neurologicalScore;
 
@@ -124,7 +121,6 @@ export const calculatePSOFAScore = (inputValues) => {
   else if (creatinine < thresholds.creatinine * 2) renalScore = 2;
   else if (creatinine < thresholds.creatinine * 3) renalScore = 3;
   else renalScore = 4;
-
   totalScore += renalScore;
   scoreDetails.renalScore = renalScore;
 
@@ -137,18 +133,18 @@ export const calculatePSOFAScore = (inputValues) => {
   scoreDetails.platelets = platelets;
   scoreDetails.creatinine = creatinine;
 
-  // Mortality Risk (simplified for pSOFA)
+  // Mortality Risk (simplified)
   let mortalityRisk = 0;
-  if (totalScore <= 4) mortalityRisk = 2; // Low
-  else if (totalScore <= 8) mortalityRisk = 10; // Moderate
-  else if (totalScore <= 12) mortalityRisk = 25; // High
-  else mortalityRisk = 50; // Very High
+  if (totalScore <= 4) mortalityRisk = 2;
+  else if (totalScore <= 8) mortalityRisk = 10;
+  else if (totalScore <= 12) mortalityRisk = 25;
+  else mortalityRisk = 50;
 
   return {
     totalScore,
     mortalityRisk,
     severityCategory: totalScore <= 4 ? 'Low' : totalScore <= 8 ? 'Moderate' : totalScore <= 12 ? 'High' : 'Very High',
-    ...scoreDetails,
+    ...scoreDetails
   };
 };
 
