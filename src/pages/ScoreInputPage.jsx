@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import scoringSystems from '../data/scoringSystems';
+import ScoreInputForm from '../components/scoring/ScoreInputForm';
 
 const ScoreInputPage = () => {
   const { patientId, scoreType } = useParams();
@@ -35,27 +36,23 @@ const ScoreInputPage = () => {
     );
   }
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (formData) => {
     try {
       const assessmentId = `assessment-${Date.now()}`;
       const assessmentData = {
         patientId,
         scoreType,
-        formValues,
+        formValues: formData,
         date: new Date().toLocaleDateString(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       await setDoc(doc(db, 'assessments', assessmentId), assessmentData);
+      // Normalize scoreType for navigation (remove hyphens, ensure lowercase)
+      const normalizedScoreType = scoreType.toLowerCase().replace(/-/g, '');
       navigate(`/patients/${patientId}/results/${assessmentId}`, {
         state: {
-          scoreType,
-          formValues,
+          scoreType: normalizedScoreType,
+          formValues: formData,
         },
       });
     } catch (error) {
@@ -87,70 +84,12 @@ const ScoreInputPage = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        <form onSubmit={handleSubmit}>
-          <h2 className="text-lg font-medium mb-4">Enter Score Parameters</h2>
-          <div className="space-y-4">
-            {selectedSystem.fields.map((field) => {
-              try {
-                return (
-                  <div key={field.name}>
-                    <label className="block text-gray-700">{field.label}</label>
-                    {field.type === 'select' ? (
-                      <select
-                        name={field.name}
-                        value={formValues[field.name] || ''}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="">Select an option</option>
-                        {field.options && field.options.length > 0 ? (
-                          field.options.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="" disabled>
-                            No options available
-                          </option>
-                        )}
-                      </select>
-                    ) : (
-                      <input
-                        type={field.type || 'text'}
-                        name={field.name}
-                        value={formValues[field.name] || ''}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border rounded-md"
-                        placeholder={`Enter ${field.label.toLowerCase()}`}
-                        min={field.min}
-                        max={field.max}
-                      />
-                    )}
-                  </div>
-                );
-              } catch (error) {
-                console.error(`Error rendering field ${field.name}:`, error);
-                return (
-                  <div key={field.name} className="text-red-600">
-                    Error rendering field: {field.name}
-                  </div>
-                );
-              }
-            })}
-            {selectedSystem.fields.length === 0 && (
-              <p className="text-gray-500">No fields defined for this score type.</p>
-            )}
-          </div>
-          <div className="mt-6 flex justify-end">
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Calculate Score
-            </button>
-          </div>
-        </form>
+        <ScoreInputForm
+          fields={selectedSystem.fields}
+          onSubmit={handleSubmit}
+          formValues={formValues}
+          setFormValues={setFormValues}
+        />
       </div>
     </div>
   );
