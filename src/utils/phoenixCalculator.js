@@ -1,13 +1,5 @@
 /**
  * Phoenix Sepsis Score Calculator
- * 
- * Implements the Phoenix Sepsis Score for pediatric sepsis assessment.
- */
-
-/**
- * Calculate Phoenix Sepsis score based on physiological variables
- * @param {Object} inputValues - Physiological parameters
- * @returns {Object} - Calculated scores and assessment
  */
 export const calculatePhoenixScore = (inputValues) => {
   if (!inputValues || typeof inputValues !== 'object') {
@@ -86,7 +78,7 @@ export const calculatePhoenixScore = (inputValues) => {
 
   // White Blood Cell Count (1 point)
   const wbc = parseFloat(inputValues.wbc) || 0;
-  if (wbc > 0 && (wbc < 5000 || wbc > 15000)) {
+  if (wbc > 0 && (wbc < 5 || wbc > 15)) {
     totalScore += 1;
     scoreDetails.wbcScore = 1;
   } else {

@@ -4,8 +4,12 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
   const [errors, setErrors] = useState({});
 
   const validateField = (name, value, field) => {
+    // Allow empty values (will be handled by NewAssessment.jsx)
+    if (value === '' || value === undefined) return '';
+
     if (field.type === 'number' && (field.min || field.max)) {
       const numValue = parseFloat(value);
+      if (isNaN(numValue)) return 'Must be a valid number';
       if (field.min && numValue < field.min) {
         return `Value must be at least ${field.min}`;
       }
@@ -29,19 +33,15 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     const formErrors = {};
-    let hasErrors = false;
 
     fields.forEach((field) => {
       const value = formValues[field.name] || (field.type === 'checkbox' ? false : '');
       const error = validateField(field.name, value, field);
-      if (error) {
-        formErrors[field.name] = error;
-        hasErrors = true;
-      }
+      if (error) formErrors[field.name] = error;
     });
 
     setErrors(formErrors);
-    if (!hasErrors) {
+    if (Object.keys(formErrors).length === 0) {
       onSubmit(formValues);
     }
   };
@@ -60,7 +60,9 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
                     name={field.name}
                     value={formValues[field.name] || ''}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-md"
+                    className={`w-full p-2 border rounded-md ${
+                      errors[field.name] ? 'border-red-500' : ''
+                    }`}
                   >
                     <option value="">Select an option</option>
                     {field.options && field.options.length > 0 ? (
@@ -98,7 +100,7 @@ const ScoreInputForm = ({ fields, onSubmit, formValues, setFormValues }) => {
                       placeholder={`Enter ${field.label.toLowerCase()}`}
                       min={field.min}
                       max={field.max}
-                      step={field.type === 'number' ? '0.1' : undefined} // Allow decimal values for numbers
+                      step={field.type === 'number' ? '0.1' : undefined}
                     />
                     {errors[field.name] && (
                       <p className="text-red-500 text-sm mt-1">{errors[field.name]}</p>

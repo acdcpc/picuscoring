@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '../firebase.js';
 
 const PatientDetailsPage = () => {
@@ -10,11 +11,27 @@ const PatientDetailsPage = () => {
   const [assessments, setAssessments] = useState([]);
   const [totalRiskScore, setTotalRiskScore] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) {
+        setError('Please sign in to access patient data');
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
     const fetchPatient = async () => {
       try {
-        const patientRef = doc(db, "patients", patientId);
+        const patientRef = doc(db, 'patients', patientId);
         const patientSnap = await getDoc(patientRef);
         if (patientSnap.exists()) {
           const patientData = patientSnap.data();
@@ -27,20 +44,23 @@ const PatientDetailsPage = () => {
           else if (ageInMonths < 144) ageCategory = '5 to <12 years';
           else ageCategory = '12 to 17 years';
           setPatient({ id: patientSnap.id, ...patientData, ageCategory });
+        } else {
+          setError('Patient not found');
         }
       } catch (error) {
-        console.error("Error fetching patient:", error);
+        console.error('Error fetching patient:', error);
+        setError('Failed to load patient data');
       }
     };
 
     const fetchAssessments = async () => {
       try {
         const assessmentsQuery = query(
-          collection(db, "assessments"),
-          where("patientId", "==", patientId)
+          collection(db, 'assessments'),
+          where('patientId', '==', patientId)
         );
         const assessmentsSnap = await getDocs(assessmentsQuery);
-        const assessmentsData = assessmentsSnap.docs.map(doc => ({
+        const assessmentsData = assessmentsSnap.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
@@ -51,20 +71,20 @@ const PatientDetailsPage = () => {
         let totalWeightedRisk = 0;
         let weightsSum = 0;
 
-        scoreTypes.forEach(scoreType => {
+        scoreTypes.forEach((scoreType) => {
           const latestAssessment = assessmentsData
-            .filter(assessment => assessment.scoreType === scoreType)
+            .filter((assessment) => assessment.scoreType === scoreType)
             .sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time))[0];
 
           if (latestAssessment && latestAssessment.calculatedScore) {
             let riskValue = 0;
-            let weight = 1; // Default weight
+            let weight = 1;
 
             switch (scoreType) {
               case 'prism3':
               case 'pelod2':
                 riskValue = parseFloat(latestAssessment.calculatedScore.mortalityRisk) || 0;
-                weight = 1.5; // Higher weight for mortality predictors
+                weight = 1.5;
                 break;
               case 'psofa':
                 riskValue = parseFloat(latestAssessment.calculatedScore.mortalityRisk) || 0;
@@ -76,7 +96,7 @@ const PatientDetailsPage = () => {
                 break;
               case 'comfortb':
                 riskValue = latestAssessment.calculatedScore.totalScore >= 12 ? 30 : (latestAssessment.calculatedScore.totalScore >= 8 ? 15 : 0);
-                weight = 0.8; // Lower weight for sedation
+                weight = 0.8;
                 break;
               case 'sospd':
                 riskValue = latestAssessment.calculatedScore.deliriumPresent ? 40 : 0;
@@ -100,7 +120,8 @@ const PatientDetailsPage = () => {
           setTotalRiskScore(normalizedRisk);
         }
       } catch (error) {
-        console.error("Error fetching assessments:", error);
+        console.error('Error fetching assessments:', error);
+        setError('Failed to load assessments');
       } finally {
         setLoading(false);
       }
@@ -108,15 +129,11 @@ const PatientDetailsPage = () => {
 
     fetchPatient();
     fetchAssessments();
-  }, [patientId]);
+  }, [patientId, user]);
 
-  if (loading) {
-    return <div className="container mx-auto px-4 py-8">Loading...</div>;
-  }
-
-  if (!patient) {
-    return <div className="container mx-auto px-4 py-8">Patient not found.</div>;
-  }
+  if (!user) return <div>Please sign in</div>;
+  if (loading) return <div className="container mx-auto px-4 py-8">Loading...</div>;
+  if (error) return <div className="container mx-auto px-4 py-8">{error}</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">

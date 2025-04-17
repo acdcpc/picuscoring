@@ -86,8 +86,9 @@ const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedSco
       const calculateScore = async () => {
         let result = null;
         try {
-          // Log patientData for debugging
+          // Log patientData and inputValues for debugging
           console.log('ScoreCalculator patientData:', patientData);
+          console.log('ScoreCalculator inputValues:', inputValues);
 
           // Check if patientData exists
           if (!patientData) {

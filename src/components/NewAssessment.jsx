@@ -88,6 +88,7 @@ const scoreFields = {
     { name: 'skinPerfusion', label: 'Skin Perfusion', type: 'select', options: ['normal', 'cold', 'delayed'] },
     { name: 'spo2', label: 'SpO2 (%)', type: 'number', min: 0, max: 100 },
     { name: 'systemicInfection', label: 'Systemic Infection', type: 'select', options: ['0', '1'] },
+    // Note: If you need custom Phoenix fields (e.g., lactate, FiO2), add them here and update phoenixCalculator.js
   ],
 };
 
@@ -97,15 +98,30 @@ const NewAssessment = ({ patientData = { id: 'default', ageCategory: '5 to <12 y
   const [scoreType, setScoreType] = useState('');
   const [formValues, setFormValues] = useState({});
   const [calculatedScore, setCalculatedScore] = useState(null);
+  const [formError, setFormError] = useState('');
 
   // Reset form values when score type changes
   useEffect(() => {
     setFormValues({});
     setCalculatedScore(null);
+    setFormError('');
   }, [scoreType]);
 
-  // Handle form submission
+  // Handle form submission with validation
   const handleSubmit = (values) => {
+    console.log('NewAssessment formValues:', values);
+    const requiredFields = scoreFields[scoreType] || [];
+    const missingFields = requiredFields
+      .filter(field => values[field.name] === undefined || values[field.name] === '')
+      .map(field => field.label);
+    
+    if (missingFields.length > 0) {
+      setFormError(`Please fill in: ${missingFields.join(', ')}`);
+      setCalculatedScore(null);
+      return;
+    }
+
+    setFormError('');
     setCalculatedScore(null); // Reset previous score
     setFormValues(values); // Update form values
   };
@@ -129,12 +145,17 @@ const NewAssessment = ({ patientData = { id: 'default', ageCategory: '5 to <12 y
 
       {/* Render ScoreInputForm */}
       {scoreType && (
-        <ScoreInputForm
-          fields={fields}
-          onSubmit={handleSubmit}
-          formValues={formValues}
-          setFormValues={setFormValues}
-        />
+        <>
+          <ScoreInputForm
+            fields={fields}
+            onSubmit={handleSubmit}
+            formValues={formValues}
+            setFormValues={setFormValues}
+          />
+          {formError && (
+            <p className="text-red-600 mt-2">{formError}</p>
+          )}
+        </>
       )}
 
       {/* Render ScoreCalculator */}
