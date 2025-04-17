@@ -77,7 +77,7 @@ const scoringSystems = [
     fields: [
       { name: 'alertness', label: 'Alertness (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'calmness', label: 'Calmness (1-5)', type: 'number', min: 1, max: 5 },
-      { name: ' služ: 'respiratoryResponse', label: 'Respiratory Response (1-5)', type: 'number', min: 1, max: 5 },
+      { name: 'respiratoryResponse', label: 'Respiratory Response (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'movement', label: 'Movement (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'muscleTone', label: 'Muscle Tone (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'facialTension', label: 'Facial Tension (1-5)', type: 'number', min: 1, max: 5 },
