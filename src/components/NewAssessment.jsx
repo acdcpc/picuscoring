@@ -78,24 +78,19 @@ const scoreFields = {
     { name: 'oxygenTherapy', label: 'Oxygen Therapy', type: 'select', options: ['yes', 'no'] },
   ],
   phoenix: [
-    // Respiratory (max 3 points)
     { name: 'oxygenMeasurement', label: 'Oxygen Measurement', type: 'select', options: ['PaO2', 'SpO2'] },
     { name: 'pao2', label: 'PaO2 (mmHg)', type: 'number', min: 0 },
     { name: 'spo2', label: 'SpO2 (%)', type: 'number', min: 0, max: 100 },
     { name: 'respiratorySupport', label: 'Respiratory Support', type: 'select', options: ['none', 'non_imv', 'imv'] },
-    // Cardiovascular (max 6 points)
     { name: 'vasoactiveMedications', label: 'Vasoactive Medications', type: 'select', options: ['0', '1', '2_or_more'] },
     { name: 'lactate', label: 'Lactate (mmol/L)', type: 'number', min: 0 },
     { name: 'map', label: 'Mean Arterial Pressure (mmHg)', type: 'number', min: 0 },
-    // Coagulation (max 2 points)
     { name: 'platelets', label: 'Platelets (x10³ μL)', type: 'number', min: 0 },
     { name: 'inr', label: 'INR', type: 'number', min: 0 },
     { name: 'dDimer', label: 'D-dimer (mg/L FEU)', type: 'number', min: 0 },
     { name: 'fibrinogen', label: 'Fibrinogen (mg/dL)', type: 'number', min: 0 },
-    // Neurological (max 2 points)
     { name: 'gcs', label: 'Glasgow Coma Score', type: 'number', min: 3, max: 15 },
     { name: 'pupils', label: 'Pupillary Reaction', type: 'select', options: ['reactive', 'fixed'] },
-    // Systemic Infection (for sepsis diagnosis)
     { name: 'systemicInfection', label: 'Systemic Infection', type: 'select', options: ['0', '1'] },
   ],
 };
