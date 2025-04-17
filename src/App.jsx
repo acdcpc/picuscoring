@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import PatientListPage from './pages/PatientListPage';
-import PatientDetailsPage from './pages/PatientDetailsPage';
-import NewAssessment from './components/NewAssessment';
-import ErrorBoundary from './components/ErrorBoundary';
+import PatientListPage from './pages/PatientListPage.jsx';
+import PatientDetailsPage from './pages/PatientDetailsPage.jsx';
+import NewAssessment from './components/NewAssessment.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 function App() {
   return (
@@ -19,19 +19,31 @@ function App() {
 
         {/* Main Content */}
         <main className="flex-grow container mx-auto p-4">
-          <Routes>
-            <Route path="/" element={<Navigate to="/patients" replace />} />
-            <Route path="/patients" element={<PatientListPage />} />
-            <Route path="/patients/:patientId" element={<PatientDetailsPage />} />
-            <Route
-              path="/patients/:patientId/new-assessment"
-              element={
-                <ErrorBoundary>
-                  <NewAssessment />
-                </ErrorBoundary>
-              }
-            />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<Navigate to="/patients" replace />} />
+              <Route path="/patients" element={<PatientListPage />} />
+              <Route path="/patients/:patientId" element={<PatientDetailsPage />} />
+              <Route
+                path="/patients/:patientId/new-assessment"
+                element={
+                  <ErrorBoundary>
+                    {console.log('Rendering NewAssessment route')}
+                    <NewAssessment />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="*"
+                element={
+                  <div className="p-6 text-red-600">
+                    <h2 className="text-xl font-bold">Route Not Found</h2>
+                    <p>The requested route does not exist.</p>
+                  </div>
+                }
+              />
+            </Routes>
+          </ErrorBoundary>
         </main>
 
         {/* Footer */}
@@ -46,7 +58,7 @@ function App() {
             </div>
           </div>
           <div className="text-sm text-gray-600">
-            © 2025 PICU Score App. All rights reserved the Alisha the Don.
+            © 2025 PICU Score App. All rights reserved to my love Alisha.
           </div>
         </footer>
       </div>

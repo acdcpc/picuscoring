@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { calculatePrism3 } from '../../utils/prism3Calculator';
-import { calculatePelod2 } from '../../utils/pelod2Calculator';
-import { calculatePsofa } from '../../utils/pSofaCalculator'; // Already matches file name
-import { calculatePim3 } from '../../utils/pim3Calculator';
-import { calculateComfortB } from '../../utils/comfortBCalculator';
-import { calculateSospd } from '../../utils/sospdCalculator';
-import { calculatePhoenix } from '../../utils/phoenixCalculator';
+import { calculatePrism3 } from '../../utils/prism3Calculator.js';
+import { calculatePelod2 } from '../../utils/pelod2Calculator.js';
+import { calculatePsofa } from '../../utils/pSofaCalculator.js';
+import { calculatePim3 } from '../../utils/pim3Calculator.js';
+import { calculateComfortB } from '../../utils/comfortBCalculator.js';
+import { calculateSospd } from '../../utils/sospdCalculator.js';
+import { calculatePhoenix } from '../../utils/phoenixCalculator.js';
 
 const ScoreCalculator = ({ scoreType, patientData, inputValues, setCalculatedScore }) => {
   useEffect(() => {

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import scoringSystems from '../data/scoringSystems';
-import ScoreCalculator from './scoring/ScoreCalculator';
+import scoringSystems from '../data/scoringSystems.js';
+import ScoreCalculator from './scoring/ScoreCalculator.jsx';
 
 const NewAssessment = () => {
-  console.log('NewAssessment component rendered');
+  console.log('NewAssessment component loaded');
   console.log('scoringSystems:', scoringSystems);
 
   const { patientId } = useParams();
@@ -18,12 +18,14 @@ const NewAssessment = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('Form submitted with inputValues:', inputValues);
     // The ScoreCalculator will handle the calculation
   };
 
   const selectedScoringSystem = scoringSystems?.find((system) => system.id === scoreType.toLowerCase());
 
   if (!scoringSystems) {
+    console.log('scoringSystems is undefined');
     return (
       <div className="p-6 text-red-600">
         <h2 className="text-xl font-bold">Error</h2>
@@ -32,6 +34,7 @@ const NewAssessment = () => {
     );
   }
 
+  console.log('Rendering NewAssessment JSX');
   return (
     <div className="p-6">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">New Assessment for Patient ID: {patientId}</h2>
