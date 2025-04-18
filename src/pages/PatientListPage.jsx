@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { db, auth } from '../firebase';
+const { db, auth } = require('../firebase');
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -21,6 +21,13 @@ const PatientListPage = () => {
   // Fetch patients from Firestore after auth
   useEffect(() => {
     let unsubscribe;
+    const authTimeout = setTimeout(() => {
+      if (!auth.currentUser) {
+        setError('Authentication timed out. Please refresh the page.');
+        setLoading(false);
+      }
+    }, 5000); // Wait 5 seconds for auth
+
     const fetchPatients = async () => {
       try {
         const patientsCollection = collection(db, 'patients');
@@ -29,27 +36,32 @@ const PatientListPage = () => {
           id: doc.id,
           ...doc.data(),
           lastScore: { type: 'N/A', value: 'N/A', time: 'N/A' },
-          createdAt: doc.data().createdAt || new Date(), // For sorting by Recent
+          createdAt: doc.data().createdAt || new Date(),
         }));
         setPatients(patientList);
-      } catch (error) {
-        console.error("Error fetching patients:", error);
-        setError("Failed to load patients. Please try again.");
-      } finally {
         setLoading(false);
+        clearTimeout(authTimeout);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+        setError('Failed to load patients. Please try again.');
+        setLoading(false);
+        clearTimeout(authTimeout);
       }
     };
 
     unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
+        console.log('User authenticated:', user.uid);
         fetchPatients();
       } else {
-        setError("You must be signed in to view patients.");
-        setLoading(false);
+        console.log('No user authenticated yet');
       }
     });
 
-    return () => unsubscribe && unsubscribe();
+    return () => {
+      unsubscribe && unsubscribe();
+      clearTimeout(authTimeout);
+    };
   }, []);
 
   // Handle sorting
@@ -65,7 +77,7 @@ const PatientListPage = () => {
         } else if (newSortBy === 'Recent') {
           return new Date(b.createdAt) - new Date(a.createdAt);
         }
-        return 0; // Score sorting not implemented
+        return 0;
       })
     );
   };
@@ -107,11 +119,11 @@ const PatientListPage = () => {
 
     // Validate form
     if (!newPatient.name.trim()) {
-      setFormError("Name is required.");
+      setFormError('Name is required.');
       return;
     }
     if (!newPatient.ageInMonths || newPatient.ageInMonths <= 0) {
-      setFormError("Age in months must be a positive number.");
+      setFormError('Age in months must be a positive number.');
       return;
     }
 
@@ -122,10 +134,10 @@ const PatientListPage = () => {
         ageInMonths: parseInt(newPatient.ageInMonths),
         ageCategory: newPatient.ageCategory,
         createdAt: new Date().toISOString(),
-        userId: auth.currentUser?.uid, // Tie to authenticated user
+        userId: auth.currentUser?.uid,
       };
       const docRef = await addDoc(collection(db, 'patients'), patientData);
-      console.log("New patient added with ID:", docRef.id);
+      console.log('New patient added with ID:', docRef.id);
 
       // Refresh the patient list
       const patientsCollection = collection(db, 'patients');
@@ -141,8 +153,8 @@ const PatientListPage = () => {
       // Close the modal
       closeModal();
     } catch (error) {
-      console.error("Error adding patient:", error);
-      setFormError("Failed to add patient. Please try again.");
+      console.error('Error adding patient:', error);
+      setFormError('Failed to add patient. Please try again.');
     }
   };
 
@@ -180,8 +192,17 @@ const PatientListPage = () => {
             Add Patient
           </button>
           <button className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
         </div>
@@ -254,7 +275,10 @@ const PatientListPage = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Add New Patient</h2>
-              <button onClick={closeModal} className="text-gray-500 hover:text-gray-700">
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-6 w-6"
@@ -273,7 +297,10 @@ const PatientListPage = () => {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label htmlFor="name" className="block text-gray-700 mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-gray-700 mb-2"
+                >
                   Name
                 </label>
                 <input
@@ -287,7 +314,10 @@ const PatientListPage = () => {
                 />
               </div>
               <div className="mb-4">
-                <label htmlFor="ageInMonths" className="block text-gray-700 mb-2">
+                <label
+                  htmlFor="ageInMonths"
+                  className="block text-gray-700 mb-2"
+                >
                   Age (in months)
                 </label>
                 <input
@@ -302,7 +332,10 @@ const PatientListPage = () => {
                 />
               </div>
               <div className="mb-4">
-                <label htmlFor="ageCategory" className="block text-gray-700 mb-2">
+                <label
+                  htmlFor="ageCategory"
+                  className="block text-gray-700 mb-2"
+                >
                   Age Category
                 </label>
                 <select
@@ -315,7 +348,9 @@ const PatientListPage = () => {
                   <option value="neonate">Neonate (0-30 days)</option>
                   <option value="infant">Infant (31 days - 2 years)</option>
                   <option value="child">Child (2 years - 12 years)</option>
-                  <option value="adolescent">Adolescent (13 years and up)</option>
+                  <option value="adolescent">
+                    Adolescent (13 years and up)
+                  </option>
                 </select>
               </div>
               {formError && (

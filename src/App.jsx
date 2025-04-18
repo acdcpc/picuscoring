@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { db } from './firebase.js';
+const { db } = require('./firebase');
 import PatientListPage from './pages/PatientListPage.jsx';
 import PatientDetailsPage from './pages/PatientDetailsPage.jsx';
 import NewAssessment from './components/NewAssessment.jsx';
@@ -77,7 +77,7 @@ function App() {
     <div className="min-h-screen flex flex-col bg-gray-100">
       {/* Header */}
       <header className="bg-white shadow-md p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">PICU Score App</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Nepal First PICU Score App</h1>
         <div className="text-sm text-gray-600">
           Powered by xAI
         </div>
