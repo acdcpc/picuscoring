@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-const { auth } = require('../../firebase');
 import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../../firebase';
+const { auth, db } = require('../../firebase');
 
 const ScoreCalculator = ({ patientData, onScoreCalculated }) => {
   const [scoreType, setScoreType] = useState('Phoenix');
