@@ -1,6 +1,6 @@
-const { initializeApp } = require('firebase/app');
-const { getAuth, signInAnonymously } = require('firebase/auth');
-const { getFirestore } = require('firebase/firestore');
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyANUUuJVivJbHqLvkd223pBLzPN0wNP-xU",
@@ -25,7 +25,7 @@ try {
       throw error;
     });
 
-  module.exports = { auth, db };
+  export { auth, db };
 } catch (error) {
   console.error('Firebase initialization error:', error.code, error.message);
 }

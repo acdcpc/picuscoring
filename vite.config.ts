@@ -8,12 +8,6 @@ export default defineConfig({
   },
   esbuild: {
     target: 'esnext',
-    logOverride: {
-      'unsupported-dynamic-import': 'silent',
-    },
-    // Support CommonJS modules
-    format: 'esm',
-    mainFields: ['module', 'main'],
   },
   resolve: {
     alias: {
@@ -23,6 +17,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['firebase/app', 'firebase/auth', 'firebase/firestore', './src/firebase.js'],
+    include: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
   },
 });
