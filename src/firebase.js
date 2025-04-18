@@ -12,10 +12,12 @@ const firebaseConfig = {
   measurementId: "G-Y6CPH066RX"
 };
 
+let auth, db;
+
 try {
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+  auth = getAuth(app);
+  db = getFirestore(app);
 
   // Sign in anonymously
   signInAnonymously(auth)
@@ -24,8 +26,8 @@ try {
       console.error('Anonymous auth error:', error.code, error.message);
       throw error;
     });
-
-  export { auth, db };
 } catch (error) {
   console.error('Firebase initialization error:', error.code, error.message);
 }
+
+export { auth, db };
